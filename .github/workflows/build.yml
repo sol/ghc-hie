@@ -1,0 +1,32 @@
+name: build
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - run: ghcup install ghc 9.10.1
+      - run: ghcup install ghc 9.10.2
+      - run: ghcup install ghc 9.12.1
+
+      - run: cabal update
+
+      - run: cabal test -w ghc-9.10.1
+      - run: cabal test -w ghc-9.10.2
+      - run: cabal test -w ghc-9.12.1
+
+      - name: Check for trailing whitespace
+        run: '! git grep -I "\s\+$"'
+
+      - run: curl -sSL https://raw.githubusercontent.com/sol/hpack/main/get-hpack.sh | bash
+      - run: hpack && git diff --exit-code

@@ -4,7 +4,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveFunctor #-}
-module GHC.Iface.Ext.Utils where
+{-# OPTIONS_GHC -w #-}
+module GHC912.Iface.Ext.Utils where
 
 import GHC.Prelude
 
@@ -28,7 +29,8 @@ import GHC.Types.Var.Env
 import GHC.Parser.Annotation
 import qualified GHC.Data.Strict as Strict
 
-import GHC.Iface.Ext.Types
+import GHC912.Iface.Ext.Compat
+import GHC912.Iface.Ext.Types
 
 import qualified Data.Map as M
 import qualified Data.Set as S

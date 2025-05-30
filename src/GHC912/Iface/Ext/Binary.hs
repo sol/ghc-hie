@@ -1,8 +1,10 @@
+{-# OPTIONS_GHC -w #-}
+
 {-
 Binary serialization for .hie files.
 -}
 
-module GHC.Iface.Ext.Binary
+module GHC912.Iface.Ext.Binary
    ( readHieFile
    , readHieFileWithVersion
    , HieHeader
@@ -20,17 +22,17 @@ import GHC.Prelude
 import GHC.Builtin.Utils
 import GHC.Settings.Utils         ( maybeRead )
 import GHC.Settings.Config        ( cProjectVersion )
-import GHC.Utils.Binary
+import GHC912.Utils.Binary
+import GHC912.Utils.Binary.Instances
 import GHC.Data.FastMutInt
 import GHC.Data.FastString        ( FastString )
-import GHC.Iface.Ext.Types
-import GHC.Iface.Binary           ( putAllTables )
+import GHC912.Iface.Ext.Types
 import GHC.Types.Name
 import GHC.Types.Name.Cache
 import GHC.Types.SrcLoc as SrcLoc
 import GHC.Types.Unique
 import GHC.Types.Unique.FM
-import qualified GHC.Utils.Binary as Binary
+import qualified GHC912.Utils.Binary as Binary
 import GHC.Utils.Outputable
 import GHC.Utils.Panic
 
@@ -167,7 +169,7 @@ readHieFile name_cache file = do
   (readHieVersion, ghcVersion) <- readHieFileHeader file bh0
 
   -- Check if the versions match
-  when (readHieVersion /= hieVersion) $
+  when False $ -- (readHieVersion /= hieVersion) $
     panic $ unwords ["readHieFile: hie file versions don't match for file:"
                     , file
                     , "Expected"
@@ -175,7 +177,7 @@ readHieFile name_cache file = do
                     , "but got", show readHieVersion
                     ]
   hieFile <- readHieFileContents bh0 name_cache
-  return $ HieFileResult hieVersion ghcVersion hieFile
+  return $ HieFileResult readHieVersion ghcVersion hieFile
 
 readBinLine :: ReadBinHandle -> IO ByteString
 readBinLine bh = BS.pack . reverse <$> loop []
