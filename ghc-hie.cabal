@@ -15,11 +15,14 @@ build-type:     Simple
 
 library
   exposed-modules:
+      GHC.Iface.Ext.Binary
+      GHC.Iface.Ext.Debug
+      GHC.Iface.Ext.Types
+      GHC.Iface.Ext.Utils
+  other-modules:
+      GHC910.Iface.Ext.Binary
       GHC912.Iface.Ext.Binary
       GHC912.Iface.Ext.Compat
-      GHC912.Iface.Ext.Debug
-      GHC912.Iface.Ext.Types
-      GHC912.Iface.Ext.Utils
       GHC912.Utils.Binary
       GHC912.Utils.Binary.Instances
   hs-source-dirs:
@@ -33,7 +36,7 @@ library
     , deepseq
     , directory
     , filepath
-    , ghc
+    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1
     , ghc-boot
     , transformers
   default-language: GHC2021
@@ -42,11 +45,13 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      GHC.Iface.Ext.Binary
+      GHC.Iface.Ext.Debug
+      GHC.Iface.Ext.Types
+      GHC.Iface.Ext.Utils
+      GHC910.Iface.Ext.Binary
       GHC912.Iface.Ext.Binary
       GHC912.Iface.Ext.Compat
-      GHC912.Iface.Ext.Debug
-      GHC912.Iface.Ext.Types
-      GHC912.Iface.Ext.Utils
       GHC912.Utils.Binary
       GHC912.Utils.Binary.Instances
       GHC.Iface.Ext.BinarySpec
@@ -64,7 +69,7 @@ test-suite spec
     , deepseq
     , directory
     , filepath
-    , ghc
+    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1
     , ghc-boot
     , hspec ==2.*
     , process

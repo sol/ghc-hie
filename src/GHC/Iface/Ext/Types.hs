@@ -14,7 +14,7 @@ Types for the .hie file format are defined here.
 For more information see https://gitlab.haskell.org/ghc/ghc/wikis/hie-files
 -}
 
-module GHC912.Iface.Ext.Types where
+module GHC.Iface.Ext.Types where
 
 import GHC.Prelude
 
@@ -53,10 +53,6 @@ import Data.Function              ( on )
 import qualified Data.Semigroup as S
 
 type Span = RealSrcSpan
-
--- | Current version of @.hie@ files
-hieVersion :: Integer
-hieVersion = read (cProjectVersionInt ++ cProjectPatchLevel) :: Integer
 
 {- |
 GHC builds up a wealth of information about Haskell source as it compiles it.

@@ -17,12 +17,17 @@ dependencies:
   - transformers
   - filepath
   - directory
-  - ghc
+  - ghc == { 9.10.1, 9.10.2, 9.12.1 }
   - ghc-boot
 
 source-dirs: src
 
-library: {}
+library:
+  exposed-modules:
+    - GHC.Iface.Ext.Binary
+    - GHC.Iface.Ext.Debug
+    - GHC.Iface.Ext.Types
+    - GHC.Iface.Ext.Utils
 
 tests:
   spec:
@@ -30,7 +35,6 @@ tests:
     main: Spec.hs
     source-dirs:
       - test
-      - src
     dependencies:
       - hspec == 2.*
       - process

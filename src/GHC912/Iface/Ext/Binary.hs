@@ -1,60 +1,36 @@
-{-# OPTIONS_GHC -w #-}
-
 {-
 Binary serialization for .hie files.
 -}
 
 module GHC912.Iface.Ext.Binary
-   ( readHieFile
-   , readHieFileWithVersion
-   , HieHeader
-   , writeHieFile
-   , HieName(..)
-   , toHieName
-   , HieFileResult(..)
-   , hieMagic
-   , hieNameOcc
+   (
+     HieHeader
+   , readHieFileHeader
+   , readHieFileContents
    )
 where
 
-import GHC.Prelude
+import Prelude hiding (span, mod)
 
 import GHC.Builtin.Utils
 import GHC.Settings.Utils         ( maybeRead )
-import GHC.Settings.Config        ( cProjectVersion )
 import GHC912.Utils.Binary
-import GHC912.Utils.Binary.Instances
-import GHC.Data.FastMutInt
-import GHC.Data.FastString        ( FastString )
-import GHC912.Iface.Ext.Types
+import GHC.Iface.Ext.Types
 import GHC.Types.Name
 import GHC.Types.Name.Cache
-import GHC.Types.SrcLoc as SrcLoc
 import GHC.Types.Unique
-import GHC.Types.Unique.FM
 import qualified GHC912.Utils.Binary as Binary
-import GHC.Utils.Outputable
+import GHC.Utils.Outputable hiding (char)
 import GHC.Utils.Panic
 
 import qualified Data.Array        as A
 import qualified Data.Array.IO     as A
 import qualified Data.Array.Unsafe as A
-import Data.IORef
 import Data.ByteString            ( ByteString )
 import qualified Data.ByteString  as BS
 import qualified Data.ByteString.Char8 as BSC
 import Data.Word                  ( Word8, Word32 )
 import Control.Monad              ( replicateM, when, forM_, foldM )
-import System.Directory           ( createDirectoryIfMissing )
-import System.FilePath            ( takeDirectory )
-
-data HieSymbolTable = HieSymbolTable
-  { hie_symtab_next :: !FastMutInt
-  , hie_symtab_map  :: !(IORef (UniqFM Name (Int, HieName)))
-  }
-
-initBinMemSize :: Int
-initBinMemSize = 1024*1024
 
 -- | The header for HIE files - Capital ASCII letters \"HIE\".
 hieMagic :: [Word8]
@@ -62,68 +38,6 @@ hieMagic = [72,73,69]
 
 hieMagicLen :: Int
 hieMagicLen = length hieMagic
-
-ghcVersion :: ByteString
-ghcVersion = BSC.pack cProjectVersion
-
-putBinLine :: WriteBinHandle -> ByteString -> IO ()
-putBinLine bh xs = do
-  mapM_ (putByte bh) $ BS.unpack xs
-  putByte bh 10 -- newline char
-
--- | Write a `HieFile` to the given `FilePath`, with a proper header and
--- symbol tables for `Name`s and `FastString`s.
-writeHieFile :: FilePath -> HieFile -> IO ()
-writeHieFile hie_file_path hiefile = do
-  bh0 <- openBinMem initBinMemSize
-
-  -- Write the header: hieHeader followed by the
-  -- hieVersion and the GHC version used to generate this file
-  mapM_ (putByte bh0) hieMagic
-  putBinLine bh0 $ BSC.pack $ show hieVersion
-  putBinLine bh0 $ ghcVersion
-
-  (fs_tbl, fs_w) <- initFastStringWriterTable
-  (name_tbl, name_w) <- initWriteNameTable
-
-  let bh = setWriterUserData bh0 $ mkWriterUserData
-        [ mkSomeBinaryWriter @Name name_w
-        , mkSomeBinaryWriter @BindingName (simpleBindingNameWriter name_w)
-        , mkSomeBinaryWriter @FastString fs_w
-        ]
-
-  -- Discard number of written elements
-  -- Order matters! See Note [Order of deduplication tables during iface binary serialisation]
-  _ <- putAllTables bh [fs_tbl, name_tbl] $ do
-    put_ bh hiefile
-
-  -- and send the result to the file
-  createDirectoryIfMissing True (takeDirectory hie_file_path)
-  writeBinMem bh hie_file_path
-  return ()
-
-initWriteNameTable :: IO (WriterTable, BinaryWriter Name)
-initWriteNameTable = do
-  symtab_next <- newFastMutInt 0
-  symtab_map <- newIORef emptyUFM
-  let bin_symtab =
-        HieSymbolTable
-          { hie_symtab_next = symtab_next
-          , hie_symtab_map = symtab_map
-          }
-
-  let put_symtab bh = do
-        name_count <- readFastMutInt symtab_next
-        symtab_map <- readIORef symtab_map
-        putSymbolTable bh name_count symtab_map
-        pure name_count
-
-  return
-    ( WriterTable
-        { putTable = put_symtab
-        }
-    , mkWriter $ putName bin_symtab
-    )
 
 initReadNameTable :: NameCache -> IO (ReaderTable Name)
 initReadNameTable cache = do
@@ -133,51 +47,7 @@ initReadNameTable cache = do
       , mkReaderFromTable = \tbl -> mkReader (getSymTabName tbl)
       }
 
-data HieFileResult
-  = HieFileResult
-  { hie_file_result_version :: Integer
-  , hie_file_result_ghc_version :: ByteString
-  , hie_file_result :: HieFile
-  }
-
 type HieHeader = (Integer, ByteString)
-
--- | Read a `HieFile` from a `FilePath`. Can use
--- an existing `NameCache`. Allows you to specify
--- which versions of hieFile to attempt to read.
--- `Left` case returns the failing header versions.
-readHieFileWithVersion :: (HieHeader -> Bool) -> NameCache -> FilePath -> IO (Either HieHeader HieFileResult)
-readHieFileWithVersion readVersion name_cache file = do
-  bh0 <- readBinMem file
-
-  (hieVersion, ghcVersion) <- readHieFileHeader file bh0
-
-  if readVersion (hieVersion, ghcVersion)
-  then do
-    hieFile <- readHieFileContents bh0 name_cache
-    return $ Right (HieFileResult hieVersion ghcVersion hieFile)
-  else return $ Left (hieVersion, ghcVersion)
-
-
--- | Read a `HieFile` from a `FilePath`. Can use
--- an existing `NameCache`.
-readHieFile :: NameCache -> FilePath -> IO HieFileResult
-readHieFile name_cache file = do
-
-  bh0 <- readBinMem file
-
-  (readHieVersion, ghcVersion) <- readHieFileHeader file bh0
-
-  -- Check if the versions match
-  when False $ -- (readHieVersion /= hieVersion) $
-    panic $ unwords ["readHieFile: hie file versions don't match for file:"
-                    , file
-                    , "Expected"
-                    , show hieVersion
-                    , "but got", show readHieVersion
-                    ]
-  hieFile <- readHieFileContents bh0 name_cache
-  return $ HieFileResult readHieVersion ghcVersion hieFile
 
 readBinLine :: ReadBinHandle -> IO ByteString
 readBinLine bh = BS.pack . reverse <$> loop []
@@ -237,12 +107,6 @@ readHieFileContents bh0 name_cache = do
       pure bhFs
 
 
-putSymbolTable :: WriteBinHandle -> Int -> UniqFM Name (Int,HieName) -> IO ()
-putSymbolTable bh next_off symtab = do
-  put_ bh next_off
-  let names = A.elems (A.array (0,next_off-1) (nonDetEltsUFM symtab))
-  mapM_ (putHieName bh) names
-
 getSymbolTable :: ReadBinHandle -> NameCache -> IO (SymbolTable Name)
 getSymbolTable bh name_cache = do
   sz <- get bh
@@ -257,32 +121,6 @@ getSymTabName :: SymbolTable Name -> ReadBinHandle -> IO Name
 getSymTabName st bh = do
   i :: Word32 <- get bh
   return $ st A.! (fromIntegral i)
-
-putName :: HieSymbolTable -> WriteBinHandle -> Name -> IO ()
-putName (HieSymbolTable next ref) bh name = do
-  symmap <- readIORef ref
-  case lookupUFM symmap name of
-    Just (off, ExternalName mod occ (UnhelpfulSpan _))
-      | isGoodSrcSpan (nameSrcSpan name) -> do
-      let hieName = ExternalName mod occ (nameSrcSpan name)
-      writeIORef ref $! addToUFM symmap name (off, hieName)
-      put_ bh (fromIntegral off :: Word32)
-    Just (off, LocalName _occ span)
-      | notLocal (toHieName name) || nameSrcSpan name /= span -> do
-      writeIORef ref $! addToUFM symmap name (off, toHieName name)
-      put_ bh (fromIntegral off :: Word32)
-    Just (off, _) -> put_ bh (fromIntegral off :: Word32)
-    Nothing -> do
-        off <- readFastMutInt next
-        writeFastMutInt next (off+1)
-        writeIORef ref $! addToUFM symmap name (off, toHieName name)
-        put_ bh (fromIntegral off :: Word32)
-
-  where
-    notLocal :: HieName -> Bool
-    notLocal LocalName{} = False
-    notLocal _ = True
-
 
 -- ** Converting to and from `HieName`'s
 
@@ -310,17 +148,6 @@ fromHieName nc hie_name = do
       Just n -> pure n
 
 -- ** Reading and writing `HieName`'s
-
-putHieName :: WriteBinHandle -> HieName -> IO ()
-putHieName bh (ExternalName mod occ span) = do
-  putByte bh 0
-  put_ bh (mod, occ, BinSrcSpan span)
-putHieName bh (LocalName occName span) = do
-  putByte bh 1
-  put_ bh (occName, BinSrcSpan span)
-putHieName bh (KnownKeyName uniq) = do
-  putByte bh 2
-  put_ bh $ unpkUnique uniq
 
 getHieName :: ReadBinHandle -> IO HieName
 getHieName bh = do
