@@ -8,7 +8,8 @@ module GHC.Iface.Ext.BinarySpec (spec) where
 import Test.Hspec
 
 import Data.String
-import Control.Monad
+import Data.Functor
+import Data.Foldable
 
 import System.Process
 import System.FilePath
@@ -19,10 +20,10 @@ import GHC.Unit.Types
 import GHC.Types.Name.Cache (initNameCache)
 import Language.Haskell.Syntax.Module.Name
 
-import GHC912.Iface.Ext.Binary
-import GHC912.Iface.Ext.Types
-import GHC912.Iface.Ext.Utils ()
-import GHC912.Iface.Ext.Debug ()
+import GHC.Iface.Ext.Binary
+import GHC.Iface.Ext.Types
+import GHC.Iface.Ext.Utils ()
+import GHC.Iface.Ext.Debug ()
 
 run :: CreateProcess -> IO ()
 run p = withCreateProcess p \ _ _ _ -> void . waitForProcess
@@ -34,23 +35,40 @@ deriving newtype instance IsString UnitId
 instance IsString Unit where
   fromString = RealUnit . Definite . fromString
 
+withHieFile :: String -> (FilePath -> IO b) -> IO b
+withHieFile ghc action = do
+  unsetEnv "GHC_ENVIRONMENT"
+  withSystemTempDirectory "hspec" \ dir -> do
+    writeFile (dir </> "Foo.hs") $ unlines [
+        "module Foo where"
+      , "foo :: Int"
+      , "foo = 23"
+      ]
+    run (proc ghc ["-v0", "-fwrite-ide-info", "Foo.hs"]) { cwd = Just dir }
+    action $ dir </> "Foo.hie"
+
+supported :: [(String, Integer)]
+supported = [
+    ("9.10.1", 9101)
+  , ("9.10.2", 9102)
+  , ("9.12.1", 9121)
+  ]
+
 spec :: Spec
 spec = do
   describe "readHieFile" do
-    it "can read HIE-files that were created with GHC 9.12.1" do
-      unsetEnv "GHC_ENVIRONMENT"
-      withSystemTempDirectory "hspec" \ dir -> do
-        writeFile (dir </> "Foo.hs") $ unlines [
-            "module Foo where"
-          , "foo :: Int"
-          , "foo = 23"
-          ]
-        run (proc "ghc-9.12.1" ["-v0", "-fwrite-ide-info", "Foo.hs"]) { cwd = Just dir }
-
+    it "rejects HIE-files created with GHC 9.8.4" do
+      withHieFile "ghc-9.8.4" \ hieFile -> do
         envNameCache <- initNameCache 'r' mempty
-        r <- readHieFile envNameCache $ dir </> "Foo.hie"
+        void <$> readHieFileEither envNameCache hieFile `shouldReturn` Left (9084, "9.8.4")
 
-        r.hie_file_result_version `shouldBe` 9121
-        r.hie_file_result_ghc_version `shouldBe` "9.12.1"
-        r.hie_file_result.hie_hs_file `shouldBe` "Foo.hs"
-        r.hie_file_result.hie_module `shouldBe` Module "main" "Foo"
+    for_ supported \ (ghcVersion, hieVersion) -> do
+      it ("accepts HIE-files created with GHC " <> ghcVersion) do
+        unsetEnv "GHC_ENVIRONMENT"
+        withHieFile ("ghc-" <> ghcVersion) \ hieFile -> do
+          envNameCache <- initNameCache 'r' mempty
+          r <- readHieFile envNameCache hieFile
+          r.hie_file_result_version `shouldBe` hieVersion
+          r.hie_file_result_ghc_version `shouldBe` fromString ghcVersion
+          r.hie_file_result.hie_hs_file `shouldBe` "Foo.hs"
+          r.hie_file_result.hie_module `shouldBe` Module "main" "Foo"
