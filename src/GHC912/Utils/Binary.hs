@@ -4,6 +4,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 
 {-# OPTIONS_GHC -O2 -funbox-strict-fields #-}
+{-# OPTIONS_GHC -w #-}
 -- We always optimise this, otherwise performance of a non-optimised
 -- compiler is severely affected
 
@@ -18,7 +19,7 @@
 -- where you can obtain the original version of the Binary library, namely
 --     http://www.cs.york.ac.uk/fp/nhc98/
 
-module GHC.Utils.Binary
+module GHC912.Utils.Binary
   ( {-type-}  Bin, RelBin(..), getRelBin,
     {-class-} Binary(..),
     {-type-}  ReadBinHandle, WriteBinHandle,
@@ -113,7 +114,7 @@ import GHC.Prelude
 
 import Language.Haskell.Syntax.Module.Name (ModuleName(..))
 
-import {-# SOURCE #-} GHC.Types.Name (Name)
+import GHC.Types.Name (Name)
 import GHC.Data.FastString
 import GHC.Data.TrieMap
 import GHC.Utils.Panic.Plain
@@ -144,7 +145,6 @@ import qualified Data.Map.Strict as Map
 import Data.Proxy
 import Data.Set                 ( Set )
 import qualified Data.Set as Set
-import Data.Time
 import Data.List (unfoldr)
 import System.IO as IO
 import System.IO.Unsafe         ( unsafeInterleaveIO )
@@ -1037,23 +1037,6 @@ instance (Binary a, Binary b) => Binary (Either a b) where
                            case h of
                              0 -> do a <- get bh ; return (Left a)
                              _ -> do b <- get bh ; return (Right b)
-
-instance Binary UTCTime where
-    put_ bh u = do put_ bh (utctDay u)
-                   put_ bh (utctDayTime u)
-    get bh = do day <- get bh
-                dayTime <- get bh
-                return $ UTCTime { utctDay = day, utctDayTime = dayTime }
-
-instance Binary Day where
-    put_ bh d = put_ bh (toModifiedJulianDay d)
-    get bh = do i <- get bh
-                return $ ModifiedJulianDay { toModifiedJulianDay = i }
-
-instance Binary DiffTime where
-    put_ bh dt = put_ bh (toRational dt)
-    get bh = do r <- get bh
-                return $ fromRational r
 
 instance Binary JoinPointHood where
     put_ bh NotJoinPoint = putByte bh 0

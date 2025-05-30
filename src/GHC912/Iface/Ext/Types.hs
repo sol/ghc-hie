@@ -6,18 +6,21 @@
 {-# LANGUAGE PatternSynonyms            #-}
 {-# LANGUAGE ScopedTypeVariables        #-}
 
+{-# OPTIONS_GHC -w #-}
+
 {-
 Types for the .hie file format are defined here.
 
 For more information see https://gitlab.haskell.org/ghc/ghc/wikis/hie-files
 -}
 
-module GHC.Iface.Ext.Types where
+module GHC912.Iface.Ext.Types where
 
 import GHC.Prelude
 
 import GHC.Settings.Config
-import GHC.Utils.Binary
+import GHC912.Utils.Binary
+import GHC912.Utils.Binary.Instances
 import GHC.Data.FastString
 import GHC.Builtin.Utils
 import GHC.Iface.Type
