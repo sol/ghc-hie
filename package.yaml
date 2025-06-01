@@ -8,7 +8,7 @@ category: Development
 
 github: sol/ghc-hie
 
-ghc-options: -Wall
+ghc-options: -Wall -O2
 
 language: GHC2021
 

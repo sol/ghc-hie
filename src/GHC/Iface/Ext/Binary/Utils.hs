@@ -19,7 +19,7 @@
 -- where you can obtain the original version of the Binary library, namely
 --     http://www.cs.york.ac.uk/fp/nhc98/
 
-module GHC912.Utils.Binary
+module GHC.Iface.Ext.Binary.Utils
   ( {-type-}  Bin, RelBin(..), getRelBin,
     {-class-} Binary(..),
     {-type-}  ReadBinHandle, WriteBinHandle,
@@ -30,6 +30,8 @@ module GHC912.Utils.Binary
 
    openBinMem,
 --   closeBin,
+
+   advance,
 
    seekBinWriter,
    seekBinReader,
@@ -417,7 +419,7 @@ getAt bh p = do seekBinReader bh p; get bh
 
 openBinMem :: Int -> IO WriteBinHandle
 openBinMem size
- | size <= 0 = error "GHC.Utils.Binary.openBinMem: size must be >= 0"
+ | size <= 0 = error "GHC.Iface.Ext.Binary.Utils.openBinMem: size must be >= 0"
  | otherwise = do
    arr <- mallocForeignPtrBytes size
    arr_r <- newIORef arr
@@ -498,6 +500,14 @@ seekBinReader (ReadBinMem _ ix_r sz_r _) (BinPtr !p) = do
   if (p > sz_r)
         then panic "seekBinReader: seek out of range"
         else writeFastMutInt ix_r p
+
+advance :: ReadBinHandle -> Int -> IO ()
+advance (ReadBinMem _ ix_r sz_r _) !n = do
+  !p <- readFastMutInt ix_r
+  let !np = p + n
+  if (np > sz_r)
+        then panic "advance: seek out of range"
+        else writeFastMutInt ix_r np
 
 seekBinReaderRel :: ReadBinHandle -> RelBin a -> IO ()
 seekBinReaderRel (ReadBinMem _ ix_r sz_r _) relBin = do

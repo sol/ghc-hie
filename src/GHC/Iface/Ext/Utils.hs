@@ -29,7 +29,7 @@ import GHC.Types.Var.Env
 import GHC.Parser.Annotation
 import qualified GHC.Data.Strict as Strict
 
-import GHC912.Iface.Ext.Compat
+import GHC.Iface.Ext.Compat
 import GHC.Iface.Ext.Types
 
 import qualified Data.Map as M

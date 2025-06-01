@@ -19,8 +19,8 @@ module GHC.Iface.Ext.Types where
 import GHC.Prelude
 
 import GHC.Settings.Config
-import GHC912.Utils.Binary
-import GHC912.Utils.Binary.Instances
+import GHC.Iface.Ext.Binary.Utils
+import GHC.Iface.Ext.Binary.Instances
 import GHC.Data.FastString
 import GHC.Builtin.Utils
 import GHC.Iface.Type

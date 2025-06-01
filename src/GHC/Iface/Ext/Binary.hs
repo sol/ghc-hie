@@ -6,6 +6,7 @@ module GHC.Iface.Ext.Binary (
 , readHieFileEither
 , HieHeader
 , HieFileResult(..)
+, extractSourceFileName
 ) where
 
 import Data.List (intercalate)
@@ -15,10 +16,11 @@ import GHC.Types.Name.Cache
 
 import GHC.Iface.Ext.Types
 
-import GHC910.Iface.Ext.Binary qualified as GHC910
-import GHC912.Utils.Binary
-import GHC912.Iface.Ext.Binary (HieHeader, readHieFileHeader)
-import GHC912.Iface.Ext.Binary qualified as GHC912
+import GHC.Iface.Ext.Binary.GHC910 qualified as GHC910
+import GHC.Iface.Ext.Binary.Utils
+import GHC.Iface.Ext.Binary.GHC912 qualified as GHC912
+import GHC.Iface.Ext.Binary.Header (HieHeader, readHieFileHeader)
+import GHC.Iface.Ext.Binary.Header qualified as Header
 
 supported :: [Integer]
 supported = supported910 ++ supported912
@@ -31,8 +33,10 @@ supported912 = [9121]
 
 -- | Read a `HieFile` from a `FilePath`. Can use an existing `NameCache`.
 readHieFile :: NameCache -> FilePath -> IO HieFileResult
-readHieFile name_cache file = do
-  readHieFileEither name_cache file >>= either (unsupportedVersion file) return
+readHieFile name_cache file = readHie (unsupportedVersion file) id name_cache file
+
+extractSourceFileName :: FilePath -> IO FilePath
+extractSourceFileName file = readBinMem file >>= Header.extractSourceFileName
 
 unsupportedVersion :: FilePath -> HieHeader -> IO a
 unsupportedVersion file = fail . unsupportedVersionError file
@@ -47,16 +51,18 @@ unsupportedVersionError file (show -> version, _) =
 -- | Read a `HieFile` from a `FilePath`. Can use an existing `NameCache`.
 -- `Left` case returns the failing header versions.
 readHieFileEither :: NameCache -> FilePath -> IO (Either HieHeader HieFileResult)
-readHieFileEither name_cache file = do
+readHieFileEither = readHie (return . Left) Right
+
+readHie :: (HieHeader -> IO a) -> (HieFileResult -> a) -> NameCache -> FilePath -> IO a
+readHie left right name_cache file = do
   bh0 <- readBinMem file
   header@(version, ghcVersion) <- readHieFileHeader file bh0
-  let
-    hieFileResult :: HieFile -> Either HieHeader HieFileResult
-    hieFileResult = Right . HieFileResult version ghcVersion
+  let hieFileResult = right . HieFileResult version ghcVersion
   if
     | version `elem` supported910 -> hieFileResult <$> GHC910.readHieFileContents bh0 name_cache
     | version `elem` supported912 -> hieFileResult <$> GHC912.readHieFileContents bh0 name_cache
-    | otherwise -> return (Left header)
+    | otherwise -> left header
+{-# INLINE readHie #-}
 
 data HieFileResult = HieFileResult {
   hie_file_result_version :: Integer

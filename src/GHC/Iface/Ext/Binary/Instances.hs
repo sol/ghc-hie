@@ -1,6 +1,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module GHC912.Utils.Binary.Instances where
+module GHC.Iface.Ext.Binary.Instances where
 
 import GHC.Types.Unique (getUnique)
 import GHC.Types.Unique.DSet (unionManyUniqDSets)
@@ -13,7 +13,7 @@ import GHC.Types.Var hiding (varName)
 import GHC.Unit.Types
 import GHC.Iface.Type
 
-import GHC912.Utils.Binary
+import GHC.Iface.Ext.Binary.Utils
 
 import GHC.Utils.Panic.Plain (panic)
 
