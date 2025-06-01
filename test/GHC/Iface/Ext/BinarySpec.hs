@@ -59,13 +59,21 @@ spec = do
   describe "readHieFile" do
     it "rejects HIE-files created with GHC 9.8.4" do
       withHieFile "ghc-9.8.4" \ hieFile -> do
+        extractSourceFileName hieFile `shouldReturn` "Foo.hs"
+        let
+          message =
+               "Unsupported HIE version 9084 for file "
+            <> hieFile
+            <> ", supported versions: 9121, 9102, 9101"
+          expected = userError message
         envNameCache <- initNameCache 'r' mempty
-        void <$> readHieFileEither envNameCache hieFile `shouldReturn` Left (9084, "9.8.4")
+        readHieFile envNameCache hieFile `shouldThrow` (== expected)
 
     for_ supported \ (ghcVersion, hieVersion) -> do
       it ("accepts HIE-files created with GHC " <> ghcVersion) do
         unsetEnv "GHC_ENVIRONMENT"
         withHieFile ("ghc-" <> ghcVersion) \ hieFile -> do
+          extractSourceFileName hieFile `shouldReturn` "Foo.hs"
           envNameCache <- initNameCache 'r' mempty
           r <- readHieFile envNameCache hieFile
           r.hie_file_result_version `shouldBe` hieVersion

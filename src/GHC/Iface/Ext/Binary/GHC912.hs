@@ -1,43 +1,22 @@
-{-
-Binary serialization for .hie files.
--}
-
-module GHC912.Iface.Ext.Binary
-   (
-     HieHeader
-   , readHieFileHeader
-   , readHieFileContents
-   )
-where
+module GHC.Iface.Ext.Binary.GHC912 (readHieFileContents) where
 
 import Prelude hiding (span, mod)
 
 import GHC.Builtin.Utils
-import GHC.Settings.Utils         ( maybeRead )
-import GHC912.Utils.Binary
+import GHC.Iface.Ext.Binary.Utils
 import GHC.Iface.Ext.Types
 import GHC.Types.Name
 import GHC.Types.Name.Cache
 import GHC.Types.Unique
-import qualified GHC912.Utils.Binary as Binary
+import qualified GHC.Iface.Ext.Binary.Utils as Binary
 import GHC.Utils.Outputable hiding (char)
 import GHC.Utils.Panic
 
 import qualified Data.Array        as A
 import qualified Data.Array.IO     as A
 import qualified Data.Array.Unsafe as A
-import Data.ByteString            ( ByteString )
-import qualified Data.ByteString  as BS
-import qualified Data.ByteString.Char8 as BSC
-import Data.Word                  ( Word8, Word32 )
-import Control.Monad              ( replicateM, when, forM_, foldM )
-
--- | The header for HIE files - Capital ASCII letters \"HIE\".
-hieMagic :: [Word8]
-hieMagic = [72,73,69]
-
-hieMagicLen :: Int
-hieMagicLen = length hieMagic
+import Data.Word                  ( Word32 )
+import Control.Monad              ( forM_, foldM )
 
 initReadNameTable :: NameCache -> IO (ReaderTable Name)
 initReadNameTable cache = do
@@ -46,40 +25,6 @@ initReadNameTable cache = do
       { getTable = \bh -> getSymbolTable bh cache
       , mkReaderFromTable = \tbl -> mkReader (getSymTabName tbl)
       }
-
-type HieHeader = (Integer, ByteString)
-
-readBinLine :: ReadBinHandle -> IO ByteString
-readBinLine bh = BS.pack . reverse <$> loop []
-  where
-    loop acc = do
-      char <- get bh :: IO Word8
-      if char == 10 -- ASCII newline '\n'
-      then return acc
-      else loop (char : acc)
-
-readHieFileHeader :: FilePath -> ReadBinHandle -> IO HieHeader
-readHieFileHeader file bh0 = do
-  -- Read the header
-  magic <- replicateM hieMagicLen (get bh0)
-  version <- BSC.unpack <$> readBinLine bh0
-  case maybeRead version of
-    Nothing ->
-      panic $ unwords ["readHieFileHeader: hieVersion isn't an Integer:"
-                      , show version
-                      ]
-    Just readHieVersion -> do
-      ghcVersion <- readBinLine bh0
-
-      -- Check if the header is valid
-      when (magic /= hieMagic) $
-        panic $ unwords ["readHieFileHeader: headers don't match for file:"
-                        , file
-                        , "Expected"
-                        , show hieMagic
-                        , "but got", show magic
-                        ]
-      return (readHieVersion, ghcVersion)
 
 readHieFileContents :: ReadBinHandle -> NameCache -> IO HieFile
 readHieFileContents bh0 name_cache = do

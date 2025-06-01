@@ -1,8 +1,8 @@
-module GHC910.Iface.Ext.Binary (readHieFileContents) where
+module GHC.Iface.Ext.Binary.GHC910 (readHieFileContents) where
 
 import Prelude hiding (mod, span)
-import GHC912.Utils.Binary hiding (SymbolTable)
-import qualified GHC912.Utils.Binary as GHC912
+import GHC.Iface.Ext.Binary.Utils hiding (SymbolTable)
+import qualified GHC.Iface.Ext.Binary.Utils as Binary
 import GHC.Types.Name
 import GHC.Types.Name.Cache
 import GHC.Utils.Outputable
@@ -13,14 +13,14 @@ import GHC.Types.Unique
 import qualified Data.Array        as A
 import qualified Data.Array.IO     as A
 import qualified Data.Array.Unsafe as A
-import Data.Word                  ( Word32 )
+import Data.Word
 import Data.Functor
 import Control.Monad
 
 import GHC.Iface.Ext.Types
 
 type BinHandle = ReadBinHandle
-type SymbolTable = GHC912.SymbolTable Name
+type SymbolTable = Binary.SymbolTable Name
 setUserData :: ReadBinHandle -> ReaderUserData -> ReadBinHandle
 setUserData = setReaderUserData
 tellBin :: ReadBinHandle -> IO (Bin a)
