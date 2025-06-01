@@ -6,12 +6,20 @@ cabal-version: 1.12
 
 name:           ghc-hie
 version:        0.0.0
+synopsis:       HIE-file parsing machinery that supports multiple versions of GHC
+category:       Development
+homepage:       https://github.com/sol/ghc-hie#readme
+bug-reports:    https://github.com/sol/ghc-hie/issues
 author:         Simon Hengel <sol@typeful.net>
 maintainer:     Simon Hengel <sol@typeful.net>
 copyright:      (c) 2025 Simon Hengel
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
+
+source-repository head
+  type: git
+  location: https://github.com/sol/ghc-hie
 
 library
   exposed-modules:
@@ -30,7 +38,7 @@ library
   ghc-options: -Wall
   build-depends:
       array
-    , base
+    , base ==4.*
     , bytestring
     , containers
     , deepseq
@@ -63,7 +71,7 @@ test-suite spec
       hspec-discover:hspec-discover
   build-depends:
       array
-    , base
+    , base ==4.*
     , bytestring
     , containers
     , deepseq
