@@ -16,9 +16,8 @@ import GHC.Types.Name.Cache
 
 import GHC.Iface.Ext.Types
 
-import GHC.Iface.Ext.Binary.GHC910 qualified as GHC910
 import GHC.Iface.Ext.Binary.Utils
-import GHC.Iface.Ext.Binary.GHC912 qualified as GHC912
+import GHC.Iface.Ext.Binary.GHC912 qualified as HieFile
 import GHC.Iface.Ext.Binary.Header (HieHeader, readHieFileHeader)
 import GHC.Iface.Ext.Binary.Header qualified as Header
 
@@ -59,8 +58,8 @@ readHie left right name_cache file = do
   header@(version, ghcVersion) <- readHieFileHeader file bh0
   let hieFileResult = right . HieFileResult version ghcVersion
   if
-    | version `elem` supported910 -> hieFileResult <$> GHC910.readHieFileContents bh0 name_cache
-    | version `elem` supported912 -> hieFileResult <$> GHC912.readHieFileContents bh0 name_cache
+    | version `elem` supported910 -> hieFileResult <$> HieFile.readHieFile910 bh0 name_cache
+    | version `elem` supported912 -> hieFileResult <$> HieFile.readHieFile912 bh0 name_cache
     | otherwise -> left header
 {-# INLINE readHie #-}
 

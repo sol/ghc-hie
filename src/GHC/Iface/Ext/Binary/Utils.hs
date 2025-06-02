@@ -110,6 +110,8 @@ module GHC.Iface.Ext.Binary.Utils
    simpleBindingNameReader,
    FullBinData(..), freezeBinHandle, thawBinHandle, putFullBinData,
    BinArray,
+
+   makeAbsoluteBin,
   ) where
 
 import GHC.Prelude
@@ -383,6 +385,7 @@ getRelBin bh = do
 makeAbsoluteBin ::  RelBin a -> Bin a
 makeAbsoluteBin (RelBin (BinPtr !start) (RelBinPtr (BinPtr !offset))) =
   BinPtr $ start + offset
+{-# INLINE makeAbsoluteBin #-}
 
 makeRelativeBin :: RelBin a -> RelBinPtr a
 makeRelativeBin (RelBin _ offset) = offset
