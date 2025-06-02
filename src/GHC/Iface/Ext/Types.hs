@@ -20,7 +20,7 @@ import GHC.Prelude
 
 import GHC.Settings.Config
 import GHC.Iface.Ext.Binary.Utils
-import GHC.Iface.Ext.Binary.Instances
+import GHC.Iface.Ext.Binary.Instances ()
 import GHC.Data.FastString
 import GHC.Builtin.Utils
 import GHC.Iface.Type
@@ -100,25 +100,6 @@ type NameEntityInfo = M.Map Name (S.Set EntityInfo)
 instance Binary NameEntityInfo where
   put_ bh m = put_ bh $ M.toList m
   get bh = fmap M.fromList (get bh)
-
-instance Binary HieFile where
-  put_ bh hf = do
-    put_ bh $ hie_hs_file hf
-    put_ bh $ hie_module hf
-    put_ bh $ hie_types hf
-    put_ bh $ hie_asts hf
-    put_ bh $ hie_exports hf
-    put_ bh $ hie_hs_src hf
-    put_ bh $ hie_entity_infos hf
-
-  get bh = HieFile
-    <$> get bh
-    <*> get bh
-    <*> get bh
-    <*> get bh
-    <*> get bh
-    <*> get bh
-    <*> get bh
 
 
 {-

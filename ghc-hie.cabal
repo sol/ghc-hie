@@ -28,7 +28,6 @@ library
       GHC.Iface.Ext.Types
       GHC.Iface.Ext.Utils
   other-modules:
-      GHC.Iface.Ext.Binary.GHC910
       GHC.Iface.Ext.Binary.GHC912
       GHC.Iface.Ext.Binary.Header
       GHC.Iface.Ext.Binary.Instances
@@ -55,7 +54,6 @@ test-suite spec
   main-is: Spec.hs
   other-modules:
       GHC.Iface.Ext.Binary
-      GHC.Iface.Ext.Binary.GHC910
       GHC.Iface.Ext.Binary.GHC912
       GHC.Iface.Ext.Binary.Header
       GHC.Iface.Ext.Binary.Instances

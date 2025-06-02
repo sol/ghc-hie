@@ -1,5 +1,10 @@
-module GHC.Iface.Ext.Binary.GHC912 (readHieFileContents) where
+{-# LANGUAGE BlockArguments #-}
+module GHC.Iface.Ext.Binary.GHC912 (
+  readHieFile910
+, readHieFile912
+) where
 
+import           Data.Typeable
 import Prelude hiding (span, mod)
 
 import GHC.Builtin.Utils
@@ -8,57 +13,84 @@ import GHC.Iface.Ext.Types
 import GHC.Types.Name
 import GHC.Types.Name.Cache
 import GHC.Types.Unique
-import qualified GHC.Iface.Ext.Binary.Utils as Binary
 import GHC.Utils.Outputable hiding (char)
 import GHC.Utils.Panic
+import GHC.Types.Avail (AvailInfo)
+import GHC.Unit.Module (Module)
+import GHC.Types.SrcLoc
 
+import Data.Array (Array)
 import qualified Data.Array        as A
 import qualified Data.Array.IO     as A
 import qualified Data.Array.Unsafe as A
 import Data.Word                  ( Word32 )
-import Control.Monad              ( forM_, foldM )
+import Data.ByteString (ByteString)
+import Control.Monad
 
-initReadNameTable :: NameCache -> IO (ReaderTable Name)
-initReadNameTable cache = do
+readHieFile910 :: ReadBinHandle -> NameCache -> IO HieFile
+readHieFile910 bh0 name_cache = do
+  dict_p <- get bh0
+  symtab_p <- get bh0
+  readHieFile dict_p symtab_p (const mempty) bh0 name_cache
+
+readHieFile912 :: ReadBinHandle -> NameCache -> IO HieFile
+readHieFile912 bh0 name_cache = do
+  dict_p <- makeAbsoluteBin <$> getRelBin bh0
+  symtab_p <- makeAbsoluteBin <$> getRelBin bh0
+  readHieFile dict_p symtab_p get bh0 name_cache
+
+initReadNameTable :: Module -> NameCache -> IO (ReaderTable Name)
+initReadNameTable currentModule cache = do
   return $
     ReaderTable
-      { getTable = \bh -> getSymbolTable bh cache
+      { getTable = \bh -> getSymbolTable currentModule bh cache
       , mkReaderFromTable = \tbl -> mkReader (getSymTabName tbl)
       }
 
-readHieFileContents :: ReadBinHandle -> NameCache -> IO HieFile
-readHieFileContents bh0 name_cache = do
-  fsReaderTable <- initFastStringReaderTable
-  nameReaderTable <- initReadNameTable name_cache
+readHieFile :: Bin () -> Bin () -> (ReadBinHandle -> IO NameEntityInfo) -> ReadBinHandle -> NameCache -> IO HieFile
+readHieFile dict_p symtab_p getNameEntityInfo bh0 name_cache = do
 
-  -- read the symbol table so we are capable of reading the actual data
-  bh1 <-
-    foldM (\bh tblReader -> tblReader bh) bh0
-      -- The order of these deserialisation matters!
-      --
-      -- See Note [Order of deduplication tables during iface binary serialisation] for details.
-      [ get_dictionary fsReaderTable
-      , get_dictionary nameReaderTable
-      ]
+  fsReaderTable <- initFastStringReaderTable
+  bh_dict <- get_dictionary dict_p fsReaderTable bh0
+
+  file <- get @FilePath bh_dict
+  currentModule <- get @Module bh_dict
+
+  nameReaderTable <- initReadNameTable currentModule name_cache
+  bh_symtab <- get_dictionary symtab_p nameReaderTable bh_dict
 
   -- load the actual data
-  get bh1
+  HieFile file currentModule
+    <$> get @(Array TypeIndex HieTypeFlat) bh_symtab
+    <*> get @(HieASTs TypeIndex) bh_symtab
+    <*> get @([AvailInfo]) bh_symtab
+    <*> get @ByteString bh_symtab
+    <*> getNameEntityInfo bh_symtab
   where
-    get_dictionary tbl bin_handle = do
-      fsTable <- Binary.forwardGetRel bin_handle (getTable tbl bin_handle)
+    get_dictionary :: forall a. Typeable a => Bin () -> ReaderTable a -> ReadBinHandle -> IO ReadBinHandle
+    get_dictionary p tbl bin_handle = withRestore do
+      seekBinReader bin_handle p
+      fsTable :: SymbolTable a <- getTable tbl bin_handle
       let
+        fsReader :: BinaryReader a
         fsReader = mkReaderFromTable tbl fsTable
+
+        bhFs :: ReadBinHandle
         bhFs = addReaderToUserData fsReader bin_handle
       pure bhFs
 
+    withRestore :: IO a -> IO a
+    withRestore action = do
+      backup <- tellBinReader bh0
+      action <* seekBinReader bh0 backup
 
-getSymbolTable :: ReadBinHandle -> NameCache -> IO (SymbolTable Name)
-getSymbolTable bh name_cache = do
+getSymbolTable :: Module -> ReadBinHandle -> NameCache -> IO (SymbolTable Name)
+getSymbolTable currentModule bh name_cache = do
   sz <- get bh
   mut_arr <- A.newArray_ (0, sz-1) :: IO (A.IOArray Int Name)
   forM_ [0..(sz-1)] $ \i -> do
     od_name <- getHieName bh
-    name <- fromHieName name_cache od_name
+    name <- fromHieName currentModule name_cache od_name
     A.writeArray mut_arr i name
   A.unsafeFreeze mut_arr
 
@@ -69,13 +101,25 @@ getSymTabName st bh = do
 
 -- ** Converting to and from `HieName`'s
 
-fromHieName :: NameCache -> HieName -> IO Name
-fromHieName nc hie_name = do
+fromHieName :: Module -> NameCache -> HieName -> IO Name
+fromHieName currentModule nc hie_name = do
 
   case hie_name of
     ExternalName mod occ span -> updateNameCache nc mod occ $ \cache -> do
       case lookupOrigNameCache cache mod occ of
-        Just name -> pure (cache, name)
+        Just old_name -> case nameSrcSpan old_name of
+          UnhelpfulSpan {} -> update
+          RealSrcSpan {}
+            | mod == currentModule -> update
+            | otherwise -> keep
+          where
+            new_name = mkExternalName uniq mod occ span
+            new_cache = extendOrigNameCache cache mod occ new_name
+            uniq = nameUnique old_name
+
+            update = pure (new_cache, new_name)
+            keep = pure (cache, old_name)
+
         Nothing   -> do
           uniq <- takeUniqFromNameCache nc
           let name       = mkExternalName uniq mod occ span
