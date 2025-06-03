@@ -63,6 +63,8 @@ test-suite spec
       GHC.Iface.Ext.Types
       GHC.Iface.Ext.Utils
       GHC.Iface.Ext.BinarySpec
+      GHC.Iface.Ext.Upstream
+      SmokeSpec
   hs-source-dirs:
       src
       test
@@ -70,7 +72,8 @@ test-suite spec
   build-tool-depends:
       hspec-discover:hspec-discover
   build-depends:
-      array
+      QuickCheck
+    , array
     , base ==4.*
     , bytestring
     , containers
