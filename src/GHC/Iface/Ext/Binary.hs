@@ -25,10 +25,10 @@ supported :: [Integer]
 supported = supported910 ++ supported912
 
 supported910 :: [Integer]
-supported910 = [9101, 9102]
+supported910 = [9081 .. 9084] ++ [9101 .. 9102]
 
 supported912 :: [Integer]
-supported912 = [9121]
+supported912 = [9121 .. 9122]
 
 -- | Read a `HieFile` from a `FilePath`. Can use an existing `NameCache`.
 readHieFile :: NameCache -> FilePath -> IO HieFileResult
