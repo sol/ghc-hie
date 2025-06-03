@@ -25,7 +25,6 @@ import GHC.Types.SrcLoc
 import GHC.Types.Name
 import GHC.Types.Name.Cache
 import GHC.Unit.Module.Env
-import GHC.Data.FastString
 import Language.Haskell.Syntax.Module.Name
 
 import GHC.Iface.Ext.Binary
@@ -102,7 +101,7 @@ spec = do
             hie_file.hie_hs_file `shouldBe` "Foo.hs"
             hie_file.hie_module `shouldBe` Module "main" "Foo"
             length hie_file.hie_types `shouldBe` 1
-            Map.keys hie_file.hie_asts.getAsts `shouldBe` [LexicalFastString "Foo.hs"]
+            Map.keys hie_file.hie_asts.getAsts `shouldBe` [HiePath "Foo.hs"]
             length hie_file.hie_exports `shouldBe` 1
             hie_file.hie_hs_src `shouldBe` B.unlines [
                 "module Foo where"
