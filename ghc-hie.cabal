@@ -44,7 +44,7 @@ library
     , deepseq
     , directory
     , filepath
-    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1
+    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
     , ghc-boot
     , transformers
   default-language: GHC2021
@@ -80,7 +80,7 @@ test-suite spec
     , deepseq
     , directory
     , filepath
-    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1
+    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
     , ghc-boot
     , hspec ==2.*
     , process

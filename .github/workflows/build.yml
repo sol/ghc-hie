@@ -15,6 +15,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - run: ghcup install ghc 9.4.8
       - run: ghcup install ghc 9.8.4
       - run: ghcup install ghc 9.10.1
       - run: ghcup install ghc 9.10.2

@@ -60,22 +60,24 @@ createHieFile ghc dir name contents = do
 
 supported :: [(String, Integer)]
 supported = [
-    ("9.10.1", 9101)
+    ("9.8.4", 9084)
+  , ("9.10.1", 9101)
   , ("9.10.2", 9102)
   , ("9.12.1", 9121)
+  , ("9.12.2", 9122)
   ]
 
 spec :: Spec
 spec = do
   describe "readHieFile" do
-    it "rejects HIE-files created with GHC 9.8.4" do
-      withHieFile "ghc-9.8.4" \ hieFile -> do
+    it "rejects HIE-files created with GHC 9.4.8" do
+      withHieFile "ghc-9.4.8" \ hieFile -> do
         extractSourceFileName hieFile `shouldReturn` "Foo.hs"
         let
           message =
-               "Unsupported HIE version 9084 for file "
+               "Unsupported HIE version 9048 for file "
             <> hieFile
-            <> ", supported versions: 9121, 9102, 9101"
+            <> ", supported versions: 9122, 9121, 9102, 9101, 9084, 9083, 9082, 9081"
           expected = userError message
         nameCache <- initNameCache 'r' mempty
         readHieFile nameCache hieFile `shouldThrow` (== expected)
