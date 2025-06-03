@@ -41,5 +41,6 @@ tests:
       - test
     dependencies:
       - hspec == 2.*
+      - QuickCheck
       - process
       - temporary
