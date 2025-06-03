@@ -207,7 +207,7 @@ instance Binary (HieType TypeIndex) where
 -- | A list of type arguments along with their respective visibilities (ie. is
 -- this an argument that would return 'True' for 'isVisibleForAllTyFlag'?).
 newtype HieArgs a = HieArgs [(Bool,a)]
-  deriving (Functor, Foldable, Traversable, Eq)
+  deriving (Functor, Foldable, Traversable, Eq, Show)
 
 instance Binary (HieArgs TypeIndex) where
   put_ bh (HieArgs xs) = put_ bh xs
@@ -225,7 +225,7 @@ pattern HiePath fs = LexicalFastString fs
 
 -- | Mapping from filepaths to the corresponding AST
 newtype HieASTs a = HieASTs { getAsts :: M.Map HiePath (HieAST a) }
-  deriving (Functor, Foldable, Traversable)
+  deriving (Functor, Foldable, Traversable, Eq)
 
 instance Binary (HieASTs TypeIndex) where
   put_ bh asts = put_ bh $ M.toAscList $ getAsts asts
@@ -245,7 +245,7 @@ data HieAST a =
     { sourcedNodeInfo :: SourcedNodeInfo a
     , nodeSpan :: Span
     , nodeChildren :: [HieAST a]
-    } deriving (Functor, Foldable, Traversable)
+    } deriving (Functor, Foldable, Traversable, Eq)
 
 instance Binary (HieAST TypeIndex) where
   put_ bh ast = do
@@ -267,7 +267,7 @@ instance Outputable a => Outputable (HieAST a) where
 
 -- | NodeInfos grouped by source
 newtype SourcedNodeInfo a = SourcedNodeInfo { getSourcedNodeInfo :: (M.Map NodeOrigin (NodeInfo a)) }
-  deriving (Functor, Foldable, Traversable)
+  deriving (Functor, Foldable, Traversable, Eq)
 
 instance Binary (SourcedNodeInfo TypeIndex) where
   put_ bh asts = put_ bh $ M.toAscList $ getSourcedNodeInfo asts
@@ -331,7 +331,7 @@ data NodeInfo a = NodeInfo
 
     , nodeIdentifiers :: NodeIdentifiers a
     -- ^ All the identifiers and their details
-    } deriving (Functor, Foldable, Traversable)
+    } deriving (Functor, Foldable, Traversable, Eq)
 
 instance Binary (NodeInfo TypeIndex) where
   put_ bh ni = do
