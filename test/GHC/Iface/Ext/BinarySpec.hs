@@ -60,7 +60,8 @@ createHieFile ghc dir name contents = do
 
 supported :: [(String, Integer)]
 supported = [
-    ("9.8.4", 9084)
+    ("9.8.1", 9081)
+  , ("9.8.4", 9084)
   , ("9.10.1", 9101)
   , ("9.10.2", 9102)
   , ("9.12.1", 9121)

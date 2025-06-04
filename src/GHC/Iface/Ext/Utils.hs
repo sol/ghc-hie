@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE TupleSections #-}
@@ -454,7 +455,7 @@ combineNodeInfo :: NodeInfo Type -> NodeInfo Type -> NodeInfo Type
 
 {- | Merge two sorted, disjoint lists of ASTs, combining when necessary.
 
-In the absence of position-altering pragmas (ex: @# line "file.hs" 3@),
+In the absence of position-altering pragmas (ex: @#line "file.hs" 3@),
 different nodes in an AST tree should either have disjoint spans (in
 which case you can say for sure which one comes first) or one span
 should be completely contained in the other (in which case the contained
@@ -467,11 +468,11 @@ in which @foozball@ and @quuuuuux@ have overlapping spans:
 @
 module Baz where
 
-# line 3 "Baz.hs"
+#\line 3 "Baz.hs"
 foozball :: Int
 foozball = 0
 
-# line 3 "Baz.hs"
+#\line 3 "Baz.hs"
 bar, quuuuuux :: Int
 bar = 1
 quuuuuux = 2
@@ -536,11 +537,15 @@ locOnly (RealSrcSpan span _) = do
 locOnly _ = pure []
 
 locOnlyE :: Monad m => EpaLocation -> ReaderT NodeOrigin m [HieAST a]
+#if __GLASGOW_HASKELL__ <= 908
+locOnlyE (EpaSpan s _) = locOnly $ RealSrcSpan s Strict.Nothing
+#else
 locOnlyE (EpaSpan s) = locOnly s
+#endif
 locOnlyE _ = pure []
 
-mkScope :: (HasLoc a) => a -> Scope
-mkScope a = case getHasLoc a of
+mkScope :: SrcSpan -> Scope
+mkScope a = case a of
               (RealSrcSpan sp _) -> LocalScope sp
               _ -> NoScope
 
@@ -559,7 +564,11 @@ mkSourcedNodeInfo org ni = SourcedNodeInfo $ M.singleton org ni
 makeNodeA
   :: (Monad m, Data a)
   => a                 -- ^ helps fill in 'nodeAnnotations' (with 'Data')
+#if __GLASGOW_HASKELL__ <= 908
+  -> SrcSpanAnn' ann         -- ^ return an empty list if this is unhelpful
+#else
   -> EpAnn ann         -- ^ return an empty list if this is unhelpful
+#endif
   -> ReaderT NodeOrigin m [HieAST b]
 makeNodeA x spn = makeNode x (locA spn)
 
