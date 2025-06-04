@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           ghc-hie
-version:        0.0.0
+version:        0.0.1
 synopsis:       HIE-file parsing machinery that supports multiple versions of GHC
 category:       Development
 homepage:       https://github.com/sol/ghc-hie#readme
@@ -44,7 +44,7 @@ library
     , deepseq
     , directory
     , filepath
-    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
+    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
     , ghc-boot
     , transformers
   default-language: GHC2021
@@ -80,7 +80,7 @@ test-suite spec
     , deepseq
     , directory
     , filepath
-    , ghc ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
+    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.12.1 || ==9.12.2
     , ghc-boot
     , hspec ==2.*
     , process

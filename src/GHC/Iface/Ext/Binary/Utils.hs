@@ -128,7 +128,6 @@ import GHC.Utils.Fingerprint
 import GHC.Types.SrcLoc
 import GHC.Types.Unique
 import qualified GHC.Data.Strict as Strict
-import GHC.Utils.Outputable( JoinPointHood(..) )
 
 import Control.DeepSeq
 import Control.Monad            ( when, (<$!>), unless, forM_, void )
@@ -1050,17 +1049,6 @@ instance (Binary a, Binary b) => Binary (Either a b) where
                            case h of
                              0 -> do a <- get bh ; return (Left a)
                              _ -> do b <- get bh ; return (Right b)
-
-instance Binary JoinPointHood where
-    put_ bh NotJoinPoint = putByte bh 0
-    put_ bh (JoinPoint ar) = do
-        putByte bh 1
-        put_ bh ar
-    get bh = do
-        h <- getByte bh
-        case h of
-            0 -> return NotJoinPoint
-            _ -> do { ar <- get bh; return (JoinPoint ar) }
 
 {-
 Finally - a reasonable portable Integer instance.
