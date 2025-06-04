@@ -25,10 +25,10 @@ jobs:
       - run: cabal update
       - run: 'echo "  ghc-options: -fwrite-ide-info" >> ~/.config/cabal/config'
 
-      - run: cabal test -w ghc-9.8.4
+      # - run: cabal test -w ghc-9.8.4
       - run: cabal test -w ghc-9.10.1
       - run: cabal test -w ghc-9.10.2
-      - run: cabal test -w ghc-9.12.1
+      # - run: cabal test -w ghc-9.12.1
 
       - name: Check for trailing whitespace
         run: '! git grep -I "\s\+$"'

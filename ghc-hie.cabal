@@ -28,6 +28,10 @@ library
       GHC.Iface.Ext.Types
       GHC.Iface.Ext.Utils
   other-modules:
+      GHC.Builtin.Imports
+      GHC.Builtin.Names
+      GHC.Builtin.Uniques
+      GHC.Builtin.Utils
       GHC.Iface.Ext.Binary.GHC912
       GHC.Iface.Ext.Binary.Header
       GHC.Iface.Ext.Binary.Instances
@@ -53,6 +57,10 @@ test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      GHC.Builtin.Imports
+      GHC.Builtin.Names
+      GHC.Builtin.Uniques
+      GHC.Builtin.Utils
       GHC.Iface.Ext.Binary
       GHC.Iface.Ext.Binary.GHC912
       GHC.Iface.Ext.Binary.Header
