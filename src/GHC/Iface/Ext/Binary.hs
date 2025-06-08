@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -21,11 +22,16 @@ import GHC.Iface.Ext.Binary.GHC912 qualified as HieFile
 import GHC.Iface.Ext.Binary.Header (HieHeader, readHieFileHeader)
 import GHC.Iface.Ext.Binary.Header qualified as Header
 
+#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912
 supported :: [Integer]
-supported = supported910 ++ supported912
+supported = supported908 ++ supported910 ++ supported912
+#endif
+
+supported908 :: [Integer]
+supported908 = [9081 .. 9084]
 
 supported910 :: [Integer]
-supported910 = [9081 .. 9084] ++ [9101 .. 9102]
+supported910 = [9101 .. 9102]
 
 supported912 :: [Integer]
 supported912 = [9121 .. 9122]
@@ -58,6 +64,7 @@ readHie left right name_cache file = do
   header@(version, ghcVersion) <- readHieFileHeader file bh0
   let hieFileResult = right . HieFileResult version ghcVersion
   if
+    | version `elem` supported908 -> hieFileResult <$> HieFile.readHieFile908 bh0 name_cache
     | version `elem` supported910 -> hieFileResult <$> HieFile.readHieFile910 bh0 name_cache
     | version `elem` supported912 -> hieFileResult <$> HieFile.readHieFile912 bh0 name_cache
     | otherwise -> left header

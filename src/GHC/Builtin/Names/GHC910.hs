@@ -1,5 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
-module GHC.Builtin.Names where
+module GHC.Builtin.Names.GHC910 where
 
 import GHC.Builtin.Imports
 

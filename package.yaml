@@ -1,7 +1,7 @@
 spec-version: 0.36.0
 
 name: ghc-hie
-version: 0.0.1
+version: 0.0.2
 synopsis: HIE-file parsing machinery that supports multiple versions of GHC
 copyright: (c) 2025 Simon Hengel
 author: Simon Hengel <sol@typeful.net>
@@ -9,7 +9,7 @@ category: Development
 
 github: sol/ghc-hie
 
-ghc-options: -Wall -O2
+ghc-options: -Wall
 
 language: GHC2021
 
@@ -30,7 +30,6 @@ source-dirs: src
 library:
   exposed-modules:
     - GHC.Iface.Ext.Binary
-    - GHC.Iface.Ext.Debug
     - GHC.Iface.Ext.Types
     - GHC.Iface.Ext.Utils
 
