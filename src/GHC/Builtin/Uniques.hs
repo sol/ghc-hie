@@ -13,12 +13,14 @@ import GHC.Types.Unique
 
 import GHC.Utils.Outputable
 import GHC.Utils.Panic
+#if __GLASGOW_HASKELL__ == 908
+import GHC.Utils.Panic.Plain (assert)
+#endif
 
 import Data.Maybe
 import GHC.Utils.Word64 (word64ToInt)
 
-#if __GLASGOW_HASKELL__ == 910
-#if __GLASGOW_HASKELL_PATCHLEVEL1__ == 1 || __GLASGOW_HASKELL_PATCHLEVEL1__ == 2
+#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912
 knownUniqueName :: Unique -> Maybe Name
 knownUniqueName u =
     case tag of
@@ -102,5 +104,4 @@ getTupleDataConName boxity n =
       (arity, 2) -> fromMaybe (panic "getTupleDataCon")
                     $ tyConRepName_maybe $ promotedTupleDataCon boxity arity
       _          -> panic "getTupleDataConName: impossible"
-#endif
 #endif

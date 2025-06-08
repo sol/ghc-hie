@@ -1,6 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
 module GHC.Iface.Ext.Binary.GHC912 (
-  readHieFile910
+  readHieFile908
+, readHieFile910
 , readHieFile912
 ) where
 
@@ -27,28 +28,34 @@ import Data.Word                  ( Word32 )
 import Data.ByteString (ByteString)
 import Control.Monad
 
+readHieFile908 :: ReadBinHandle -> NameCache -> IO HieFile
+readHieFile908 = readHieFile908_910 GHC908
+
 readHieFile910 :: ReadBinHandle -> NameCache -> IO HieFile
-readHieFile910 bh0 name_cache = do
+readHieFile910 = readHieFile908_910 GHC910
+
+readHieFile908_910 :: GHC -> ReadBinHandle -> NameCache -> IO HieFile
+readHieFile908_910 ghc bh0 name_cache = do
   dict_p <- get bh0
   symtab_p <- get bh0
-  readHieFile dict_p symtab_p (const mempty) bh0 name_cache
+  readHieFile ghc dict_p symtab_p (const mempty) bh0 name_cache
 
 readHieFile912 :: ReadBinHandle -> NameCache -> IO HieFile
 readHieFile912 bh0 name_cache = do
   dict_p <- makeAbsoluteBin <$> getRelBin bh0
   symtab_p <- makeAbsoluteBin <$> getRelBin bh0
-  readHieFile dict_p symtab_p get bh0 name_cache
+  readHieFile GHC912 dict_p symtab_p get bh0 name_cache
 
-initReadNameTable :: Module -> NameCache -> IO (ReaderTable Name)
-initReadNameTable currentModule cache = do
+initReadNameTable :: GHC -> Module -> NameCache -> IO (ReaderTable Name)
+initReadNameTable ghc currentModule cache = do
   return $
     ReaderTable
-      { getTable = \bh -> getSymbolTable currentModule bh cache
+      { getTable = \bh -> getSymbolTable ghc currentModule bh cache
       , mkReaderFromTable = \tbl -> mkReader (getSymTabName tbl)
       }
 
-readHieFile :: Bin () -> Bin () -> (ReadBinHandle -> IO NameEntityInfo) -> ReadBinHandle -> NameCache -> IO HieFile
-readHieFile dict_p symtab_p getNameEntityInfo bh0 name_cache = do
+readHieFile :: GHC -> Bin () -> Bin () -> (ReadBinHandle -> IO NameEntityInfo) -> ReadBinHandle -> NameCache -> IO HieFile
+readHieFile ghc dict_p symtab_p getNameEntityInfo bh0 name_cache = do
 
   fsReaderTable <- initFastStringReaderTable
   bh_dict <- get_dictionary dict_p fsReaderTable bh0
@@ -56,7 +63,7 @@ readHieFile dict_p symtab_p getNameEntityInfo bh0 name_cache = do
   file <- get @FilePath bh_dict
   currentModule <- get @Module bh_dict
 
-  nameReaderTable <- initReadNameTable currentModule name_cache
+  nameReaderTable <- initReadNameTable ghc currentModule name_cache
   bh_symtab <- get_dictionary symtab_p nameReaderTable bh_dict
 
   -- load the actual data
@@ -84,13 +91,13 @@ readHieFile dict_p symtab_p getNameEntityInfo bh0 name_cache = do
       backup <- tellBinReader bh0
       action <* seekBinReader bh0 backup
 
-getSymbolTable :: Module -> ReadBinHandle -> NameCache -> IO (SymbolTable Name)
-getSymbolTable currentModule bh name_cache = do
+getSymbolTable :: GHC -> Module -> ReadBinHandle -> NameCache -> IO (SymbolTable Name)
+getSymbolTable ghc currentModule bh name_cache = do
   sz <- get bh
   mut_arr <- A.newArray_ (0, sz-1) :: IO (A.IOArray Int Name)
   forM_ [0..(sz-1)] $ \i -> do
     od_name <- getHieName bh
-    name <- fromHieName currentModule name_cache od_name
+    name <- fromHieName ghc currentModule name_cache od_name
     A.writeArray mut_arr i name
   A.unsafeFreeze mut_arr
 
@@ -101,8 +108,8 @@ getSymTabName st bh = do
 
 -- ** Converting to and from `HieName`'s
 
-fromHieName :: Module -> NameCache -> HieName -> IO Name
-fromHieName currentModule nc hie_name = do
+fromHieName :: GHC -> Module -> NameCache -> HieName -> IO Name
+fromHieName ghc currentModule nc hie_name = do
 
   case hie_name of
     ExternalName mod occ span -> updateNameCache nc mod occ $ \cache -> do
@@ -131,7 +138,7 @@ fromHieName currentModule nc hie_name = do
       -- don't update the NameCache for local names
       pure $ mkInternalName uniq occ span
 
-    KnownKeyName u -> case lookupKnownKeyName u of
+    KnownKeyName u -> case lookupKnownKeyName ghc u of
       Nothing -> pprPanic "fromHieName:unknown known-key unique"
                           (ppr u)
       Just n -> pure n

@@ -766,15 +766,6 @@ instance Outputable HieName where
   ppr (LocalName n sp) = text "LocalName" <+> ppr n <+> ppr sp
   ppr (KnownKeyName u) = text "KnownKeyName" <+> ppr u
 
-hieNameOcc :: HieName -> OccName
-hieNameOcc (ExternalName _ occ _) = occ
-hieNameOcc (LocalName occ _) = occ
-hieNameOcc (KnownKeyName u) =
-  case lookupKnownKeyName u of
-    Just n -> nameOccName n
-    Nothing -> pprPanic "hieNameOcc:unknown known-key unique"
-                        (ppr u)
-
 toHieName :: Name -> HieName
 toHieName name
   | isKnownKeyName name = KnownKeyName (nameUnique name)
