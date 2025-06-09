@@ -12,10 +12,12 @@ Notes:
 
 `hie_entity_infos :: NameEntityInfo`
  - GHC versions prior to `9.12.1` do not provide `NameEntityInfo` via HIE files.
- - As a consequence `hie_entity_infos` is only available for HIE files that were generated with GHC `9.12.1` or later.
-   For HIE files that were generated with earlier versions of GHC `hie_entity_infos` is always `mempty`.
+ - As a consequence [`hie_entity_infos`] is only available for HIE files that were generated with GHC `9.12.1` or later.
+   For HIE files generated with earlier versions [`hie_entity_infos`] is always `mempty`.
  - It is however entirely possible to e.g. use this library with GHC `9.10.1` and read HIE files that were generated with GHC `9.12.2`, including inspecting the `NameEntityInfo` of such HIE files.
 
 Note that **wired-in** names are read as **external** names.  As a consequence
 you cannot access the `TyThing` for wired-in names (`wiredInNameTyThing_maybe`
 always returns `Nothing`).
+
+[`hie_entity_infos`]: https://hackage-content.haskell.org/package/ghc-hie-0.0.2/docs/GHC-Iface-Ext-Types.html#v:hie_entity_infos
