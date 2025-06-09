@@ -1,12 +1,12 @@
-This library can parse HIE files generated with GHC:
- - 9.12.2
- - 9.12.1
- - 9.10.2
- - 9.10.1
- - 9.8.4
- - 9.8.3
- - 9.8.2
- - 9.8.1
+This library can parse HIE files generated with GHC versions:
+ - `9.12.2`
+ - `9.12.1`
+ - `9.10.2`
+ - `9.10.1`
+ - `9.8.4`
+ - `9.8.3`
+ - `9.8.2`
+ - `9.8.1`
 
 Notes:
  - GHC versions prior to `9.12.1` do not provide [`hie_entity_infos :: NameEntityInfo`][hie_entity_infos] via HIE files.
