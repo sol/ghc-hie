@@ -15,17 +15,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - run: ghcup install ghc 9.4.8
-      - run: ghcup install ghc 9.8.1
-      - run: ghcup install ghc 9.8.4
-      - run: ghcup install ghc 9.10.1
-      - run: ghcup install ghc 9.10.2
-      - run: ghcup install ghc 9.12.1
-      - run: ghcup install ghc 9.12.2
+      - name: Determine ghcup basedir
+        run: |
+          GHCUP_BASEDIR=$(ghcup whereis basedir)
+          sudo chown $USER:$USER -hR "$GHCUP_BASEDIR"
+          echo "basedir=$GHCUP_BASEDIR" >> $GITHUB_OUTPUT
+        id: ghcup
 
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.ghcup.outputs.basedir }}
+          key: ghcup-v1
+          restore-keys: ghcup-
+        id: cache
+
+      - name: Install GHC versions
+        run: |
+          ghcup install ghc 9.4.8
+          ghcup install ghc 9.8.1
+          ghcup install ghc 9.8.4
+          ghcup install ghc 9.10.1
+          ghcup install ghc 9.10.2
+          ghcup install ghc 9.12.1
+          ghcup install ghc 9.12.2
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.ghcup.outputs.basedir }}
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - run: 'echo "  ghc-options: -fwrite-ide-info" >> `cabal path --config-file -v0`'
       - run: cabal update
-      - run: 'echo "  ghc-options: -fwrite-ide-info" >> ~/.config/cabal/config'
-
       - run: cabal test -w ghc-9.8.4
       - run: cabal test -w ghc-9.10.1
       - run: cabal test -w ghc-9.10.2
