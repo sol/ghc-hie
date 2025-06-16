@@ -72,6 +72,7 @@ test-suite spec
       GHC.Iface.Ext.Compat
       GHC.Iface.Ext.Types
       GHC.Iface.Ext.Utils
+      GHC.Builtin.UtilsSpec
       GHC.Iface.Ext.BinarySpec
       GHC.Iface.Ext.Upstream
       SmokeSpec
