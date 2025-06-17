@@ -17,6 +17,18 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    name: GHC ${{ matrix.ghc }}
+    strategy:
+      fail-fast: true
+      matrix:
+        ghc:
+          - '9.8'
+
+          - '9.10.1'
+          - '9.10'
+
+          - '9.12.1'
+          - '9.12'
     steps:
       - uses: actions/checkout@v4
 
@@ -37,15 +49,12 @@ jobs:
       - name: Install GHC versions
         run: |
           ghcup install ghc 9.4.8
-
           ghcup install ghc 9.8.1
-          ghcup install ghc 9.8
-
+          ghcup install ghc 9.8.4
           ghcup install ghc 9.10.1
-          ghcup install ghc 9.10
-
+          ghcup install ghc 9.10.2
           ghcup install ghc 9.12.1
-          ghcup install ghc 9.12
+          ghcup install ghc 9.12.2
 
         if: steps.cache.outputs.cache-hit != 'true'
 
@@ -56,34 +65,22 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - run: 'echo "  ghc-options: -fwrite-ide-info" >> `cabal path --config-file -v0`'
-      - run: cabal update
-      - run: cabal build all --dry-run
 
-      - name: Determine path to cabal store
-        run: echo "store=`cabal -v0 path --store-dir`" >> $GITHUB_OUTPUT
-        id: cabal
-
-      - uses: actions/cache/restore@v4
+      - run: ghcup install --set ${{ matrix.ghc }}
+      - uses: sol/run-haskell-tests@v2
         with:
-          path: ${{ steps.cabal.outputs.store }}
-          key: cabal-store-${{ hashFiles('dist-newstyle/cache/plan.json') }}
-          restore-keys: cabal-store-
-        id: cabal-cache
+          caching: true
 
-      - run: cabal test -w ghc-9.8
+  success:
+    needs: build
+    runs-on: ubuntu-latest
+    if: always() # this is required as GitHub considers "skipped" jobs as "passed" when checking branch protection rules
 
-      - run: cabal test -w ghc-9.10.1
-      - run: cabal test -w ghc-9.10
+    steps:
+      - run: false
+        if: needs.build.result != 'success'
 
-      - run: cabal test -w ghc-9.12.1
-      - run: cabal test -w ghc-9.12
-
-      - uses: actions/cache/save@v4
-        with:
-          path: ${{ steps.cabal.outputs.store }}
-          key: ${{ steps.cabal-cache.outputs.cache-primary-key }}
-        if: steps.cabal-cache.outputs.cache-hit != 'true'
-
+      - uses: actions/checkout@v4
       - name: Check for trailing whitespace
         run: '! git grep -I "\s\+$"'
 
