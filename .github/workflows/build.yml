@@ -5,9 +5,14 @@ concurrency:
   cancel-in-progress: true
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: 0 0 * * *
 
 jobs:
   build:
@@ -32,12 +37,16 @@ jobs:
       - name: Install GHC versions
         run: |
           ghcup install ghc 9.4.8
+
           ghcup install ghc 9.8.1
-          ghcup install ghc 9.8.4
+          ghcup install ghc 9.8
+
           ghcup install ghc 9.10.1
-          ghcup install ghc 9.10.2
+          ghcup install ghc 9.10
+
           ghcup install ghc 9.12.1
-          ghcup install ghc 9.12.2
+          ghcup install ghc 9.12
+
         if: steps.cache.outputs.cache-hit != 'true'
 
       - uses: actions/cache/save@v4
@@ -48,11 +57,32 @@ jobs:
 
       - run: 'echo "  ghc-options: -fwrite-ide-info" >> `cabal path --config-file -v0`'
       - run: cabal update
-      - run: cabal test -w ghc-9.8.4
+      - run: cabal build all --dry-run
+
+      - name: Determine path to cabal store
+        run: echo "store=`cabal -v0 path --store-dir`" >> $GITHUB_OUTPUT
+        id: cabal
+
+      - uses: actions/cache/restore@v4
+        with:
+          path: ${{ steps.cabal.outputs.store }}
+          key: cabal-store-${{ hashFiles('dist-newstyle/cache/plan.json') }}
+          restore-keys: cabal-store-
+        id: cabal-cache
+
+      - run: cabal test -w ghc-9.8
+
       - run: cabal test -w ghc-9.10.1
-      - run: cabal test -w ghc-9.10.2
+      - run: cabal test -w ghc-9.10
+
       - run: cabal test -w ghc-9.12.1
-      - run: cabal test -w ghc-9.12.2
+      - run: cabal test -w ghc-9.12
+
+      - uses: actions/cache/save@v4
+        with:
+          path: ${{ steps.cabal.outputs.store }}
+          key: ${{ steps.cabal-cache.outputs.cache-primary-key }}
+        if: steps.cabal-cache.outputs.cache-hit != 'true'
 
       - name: Check for trailing whitespace
         run: '! git grep -I "\s\+$"'
