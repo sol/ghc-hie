@@ -31,7 +31,7 @@ supported908 :: [Integer]
 supported908 = [9081 .. 9084]
 
 supported910 :: [Integer]
-supported910 = [9101 .. 9102]
+supported910 = [9101 .. 9103]
 
 supported912 :: [Integer]
 supported912 = [9121 .. 9122]
