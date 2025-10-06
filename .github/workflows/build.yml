@@ -30,6 +30,17 @@ jobs:
           - '9.12.1'
           - '9.12'
     steps:
+      - name: Free disk space
+        run: |
+
+          # `rm -rf` is slow
+          sudo find /opt/hostedtoolcache -type f -delete
+          sudo find /usr/local/lib/android -type f -delete
+
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /usr/lib/jvm
+          sudo rm -rf /usr/local/share/powershell
+
       - uses: actions/checkout@v4
 
       - name: Determine ghcup basedir
@@ -42,7 +53,7 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: ${{ steps.ghcup.outputs.basedir }}
-          key: ghcup-v1
+          key: ghcup-v2
           restore-keys: ghcup-
         id: cache
 
@@ -53,6 +64,7 @@ jobs:
           ghcup install ghc 9.8.4
           ghcup install ghc 9.10.1
           ghcup install ghc 9.10.2
+          ghcup install ghc 9.10.3
           ghcup install ghc 9.12.1
           ghcup install ghc 9.12.2
 
