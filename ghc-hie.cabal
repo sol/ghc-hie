@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.1.
+-- This file has been generated from package.yaml by hpack version 0.39.1.
 --
 -- see: https://github.com/sol/hpack
 
@@ -12,7 +12,7 @@ homepage:       https://github.com/sol/ghc-hie#readme
 bug-reports:    https://github.com/sol/ghc-hie/issues
 author:         Simon Hengel <sol@typeful.net>
 maintainer:     Simon Hengel <sol@typeful.net>
-copyright:      (c) 2025 Simon Hengel
+copyright:      (c) 2025-2026 Simon Hengel
 license:        MIT
 license-file:   LICENSE
 build-type:     Simple
