@@ -38,6 +38,4 @@ ghcInternalUnit :: Unit
 ghcInternalUnit = fsToUnit "ghc-internal"
 #endif
 
-knownKeys = undefined
-
 supported = undefined
