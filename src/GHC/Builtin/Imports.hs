@@ -17,6 +17,14 @@ external :: Word64 -> Unit -> FastString -> NameSpace -> FastString -> SrcSpan -
 external unique unit module_ t name =
   mkExternalName (mkUniqueGrimily unique) (Module unit $ ModuleName module_) (mkOccNameFS t name)
 
+#if __GLASGOW_HASKELL__ >= 914
+primUnit :: Unit
+primUnit = fsToUnit "ghc-prim"
+
+bignumUnit :: Unit
+bignumUnit = fsToUnit "ghc-bignum"
+#endif
+
 #if __GLASGOW_HASKELL__ >= 912
 baseUnit :: Unit
 baseUnit = fsToUnit "base"

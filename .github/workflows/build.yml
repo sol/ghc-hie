@@ -29,6 +29,8 @@ jobs:
 
           - '9.12.1'
           - '9.12'
+
+          - '9.14'
     steps:
       - name: Free disk space
         run: |
@@ -53,7 +55,7 @@ jobs:
       - uses: actions/cache/restore@v4
         with:
           path: ${{ steps.ghcup.outputs.basedir }}
-          key: ghcup-v2
+          key: ghcup-v3
           restore-keys: ghcup-
         id: cache
 
@@ -67,6 +69,7 @@ jobs:
           ghcup install ghc 9.10.3
           ghcup install ghc 9.12.1
           ghcup install ghc 9.12.2
+          ghcup install ghc 9.14.1
 
         if: steps.cache.outputs.cache-hit != 'true'
 
@@ -78,7 +81,8 @@ jobs:
 
       - run: 'echo "  ghc-options: -fwrite-ide-info" >> `cabal path --config-file -v0`'
 
-      - run: ghcup install --set ${{ matrix.ghc }}
+      - run: ghcup install ghc ${{ matrix.ghc }} --set
+      - run: bash <(curl -fsSL https://raw.githubusercontent.com/sol/ghc-hie-files/main/get.sh)
       - uses: sol/run-haskell-tests@v2
         with:
           caching: true
