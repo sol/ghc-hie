@@ -7,13 +7,12 @@ import Test.QuickCheck
 
 import Foreign (Ptr, peek)
 import Data.Word
-import Data.Foldable
+import Data.Foldable hiding (find)
 import Control.Exception (bracket_)
 import System.Environment (lookupEnv)
 import System.Process
 
-import GHC.Types.Name.Cache
-import GHC.Settings.Config (cProjectUnitId)
+import GHC.Settings.Config (cProjectVersion, cProjectUnitId)
 import GHC.Types.Unique.Supply (initUniqSupply)
 
 import GHC.Iface.Ext.Binary
@@ -32,9 +31,12 @@ withDeterministicUniqueSupply action = do
 findHieFiles :: IO [FilePath]
 findHieFiles = lookupEnv "CI" >>= \ case
   Nothing -> return []; Just
-    _ -> lines <$> readCreateProcess (shell $ "find " <> store <> " -name '*.hie'") ""
+    _ -> (++)
+      <$> do find $ "~/.local/state/ghc-hie-files/ghc-" <> cProjectVersion
+      <*> do find $ "~/.local/state/cabal/store/" <> cProjectUnitId
   where
-    store = "~/.local/state/cabal/store/" <> cProjectUnitId
+    find :: FilePath -> IO [String]
+    find dir = lines <$> readCreateProcess (shell $ "find " <> dir <> " -name '*.hie'") ""
 
 spec :: Spec
 spec = do
@@ -58,9 +60,9 @@ spec = do
     runIO findHieFiles >>= traverse_ \ hieFile -> do
       it hieFile do
         theirs <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- newEmptyNameCache
           Upstream.readHieFile hieFile nameCache
         mine <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- newEmptyNameCache
           hie_file_result <$> readHieFile nameCache hieFile
         Blind mine `shouldBe` Blind theirs

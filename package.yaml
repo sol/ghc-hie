@@ -1,7 +1,7 @@
 spec-version: 0.36.0
 
 name: ghc-hie
-version: 0.0.3
+version: 0.0.4
 synopsis: HIE-file parsing machinery that supports multiple versions of GHC
 copyright: (c) 2025-2026 Simon Hengel
 author: Simon Hengel <sol@typeful.net>
@@ -22,7 +22,7 @@ dependencies:
   - transformers
   - filepath
   - directory
-  - ghc == { 9.8.4, 9.10.1, 9.10.2, 9.10.3, 9.12.1, 9.12.2 }
+  - ghc == { 9.8.4, 9.10.1, 9.10.2, 9.10.3, 9.12.1, 9.12.2, 9.14.1 }
   - ghc-boot
 
 source-dirs: src

@@ -455,7 +455,7 @@ combineNodeInfo :: NodeInfo Type -> NodeInfo Type -> NodeInfo Type
 
 {- | Merge two sorted, disjoint lists of ASTs, combining when necessary.
 
-In the absence of position-altering pragmas (ex: @#line "file.hs" 3@),
+In the absence of position-altering pragmas (ex: @# line "file.hs" 3@),
 different nodes in an AST tree should either have disjoint spans (in
 which case you can say for sure which one comes first) or one span
 should be completely contained in the other (in which case the contained
@@ -468,11 +468,11 @@ in which @foozball@ and @quuuuuux@ have overlapping spans:
 @
 module Baz where
 
-#\line 3 "Baz.hs"
+# \line 3 "Baz.hs"
 foozball :: Int
 foozball = 0
 
-#\line 3 "Baz.hs"
+# \line 3 "Baz.hs"
 bar, quuuuuux :: Int
 bar = 1
 quuuuuux = 2

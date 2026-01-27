@@ -3,6 +3,7 @@
 module GHC.Builtin.Utils (GHC(..), isKnownKeyName, lookupKnownKeyName) where
 
 import Data.Maybe
+import Data.Functor
 import Control.Applicative
 
 import GHC.Types.Unique
@@ -13,17 +14,20 @@ import GHC.Builtin.Uniques
 import GHC.Builtin.Names.GHC908 qualified as GHC908
 import GHC.Builtin.Names.GHC910 qualified as GHC910
 import GHC.Builtin.Names.GHC912 qualified as GHC912
+import GHC.Builtin.Names.GHC914 qualified as GHC914
 
 data GHC =
     GHC908
   | GHC910
   | GHC912
+  | GHC914
 
 lookupKnownKeyName :: GHC -> Unique -> Maybe Name
 lookupKnownKeyName = \ case
   GHC908 -> lookupKnownKeyName908
   GHC910 -> lookupKnownKeyName910
   GHC912 -> lookupKnownKeyName912
+  GHC914 -> lookupKnownKeyName914
 
 lookupKnownKeyName908 :: Unique -> Maybe Name
 lookupKnownKeyName908 u = knownUniqueName u <|> lookupUFM_Directly knownKeysMap908 u
@@ -34,19 +38,37 @@ lookupKnownKeyName910 u = knownUniqueName u <|> lookupUFM_Directly knownKeysMap9
 lookupKnownKeyName912 :: Unique -> Maybe Name
 lookupKnownKeyName912 u = knownUniqueName u <|> lookupUFM_Directly knownKeysMap912 u
 
+lookupKnownKeyName914 :: Unique -> Maybe Name
+lookupKnownKeyName914 u = knownUniqueName u <|> lookupUFM_Directly knownKeysMap914 u
+
 knownKeysMap908 :: UniqFM Name Name
 knownKeysMap908 = listToIdentityUFM GHC908.knownKeyNames
+{-# NOINLINE knownKeysMap908 #-}
 
 knownKeysMap910 :: UniqFM Name Name
 knownKeysMap910 = listToIdentityUFM GHC910.knownKeyNames
+{-# NOINLINE knownKeysMap910 #-}
 
 knownKeysMap912 :: UniqFM Name Name
 knownKeysMap912 = listToIdentityUFM GHC912.knownKeyNames
+{-# NOINLINE knownKeysMap912 #-}
+
+knownKeysMap914 :: UniqFM Name Name
+knownKeysMap914 = listToIdentityUFM GHC914.knownKeyNames
+{-# NOINLINE knownKeysMap914 #-}
 
 isKnownKeyName :: Name -> Bool
 isKnownKeyName n = isJust (knownUniqueName $ nameUnique n) || elemUFM n knownKeys
 
-#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912
+#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912 || __GLASGOW_HASKELL__ == 914
 knownKeys :: UniqFM Name ()
-knownKeys = () <$ knownKeysMap908 <> knownKeysMap910 <> knownKeysMap912
+knownKeys =
+     knownKeysMap908
+  <> knownKeysMap910
+  <> knownKeysMap912
+  <> knownKeysMap914
+  $> ()
+{-# NOINLINE knownKeys #-}
+#else
+#error unsupported GHC version
 #endif

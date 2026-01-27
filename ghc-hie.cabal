@@ -5,7 +5,7 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           ghc-hie
-version:        0.0.3
+version:        0.0.4
 synopsis:       HIE-file parsing machinery that supports multiple versions of GHC
 category:       Development
 homepage:       https://github.com/sol/ghc-hie#readme
@@ -31,9 +31,10 @@ library
       GHC.Builtin.Names.GHC908
       GHC.Builtin.Names.GHC910
       GHC.Builtin.Names.GHC912
+      GHC.Builtin.Names.GHC914
       GHC.Builtin.Uniques
       GHC.Builtin.Utils
-      GHC.Iface.Ext.Binary.GHC912
+      GHC.Iface.Ext.Binary.GHC914
       GHC.Iface.Ext.Binary.Header
       GHC.Iface.Ext.Binary.Instances
       GHC.Iface.Ext.Binary.Utils
@@ -49,7 +50,7 @@ library
     , deepseq
     , directory
     , filepath
-    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.10.3 || ==9.12.1 || ==9.12.2
+    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.10.3 || ==9.12.1 || ==9.12.2 || ==9.14.1
     , ghc-boot
     , transformers
   default-language: GHC2021
@@ -62,10 +63,11 @@ test-suite spec
       GHC.Builtin.Names.GHC908
       GHC.Builtin.Names.GHC910
       GHC.Builtin.Names.GHC912
+      GHC.Builtin.Names.GHC914
       GHC.Builtin.Uniques
       GHC.Builtin.Utils
       GHC.Iface.Ext.Binary
-      GHC.Iface.Ext.Binary.GHC912
+      GHC.Iface.Ext.Binary.GHC914
       GHC.Iface.Ext.Binary.Header
       GHC.Iface.Ext.Binary.Instances
       GHC.Iface.Ext.Binary.Utils
@@ -90,7 +92,7 @@ test-suite spec
     , deepseq
     , directory
     , filepath
-    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.10.3 || ==9.12.1 || ==9.12.2
+    , ghc ==9.8.4 || ==9.10.1 || ==9.10.2 || ==9.10.3 || ==9.12.1 || ==9.12.2 || ==9.14.1
     , ghc-boot
     , hspec ==2.*
     , process

@@ -1,8 +1,9 @@
 {-# LANGUAGE BlockArguments #-}
-module GHC.Iface.Ext.Binary.GHC912 (
+module GHC.Iface.Ext.Binary.GHC914 (
   readHieFile908
 , readHieFile910
 , readHieFile912
+, readHieFile914
 ) where
 
 import           Data.Typeable
@@ -41,10 +42,16 @@ readHieFile908_910 ghc bh0 name_cache = do
   readHieFile ghc dict_p symtab_p (const mempty) bh0 name_cache
 
 readHieFile912 :: ReadBinHandle -> NameCache -> IO HieFile
-readHieFile912 bh0 name_cache = do
+readHieFile912 = readHieFile912_914 GHC912
+
+readHieFile914 :: ReadBinHandle -> NameCache -> IO HieFile
+readHieFile914 = readHieFile912_914 GHC914
+
+readHieFile912_914 :: GHC -> ReadBinHandle -> NameCache -> IO HieFile
+readHieFile912_914 ghc bh0 name_cache = do
   dict_p <- makeAbsoluteBin <$> getRelBin bh0
   symtab_p <- makeAbsoluteBin <$> getRelBin bh0
-  readHieFile GHC912 dict_p symtab_p get bh0 name_cache
+  readHieFile ghc dict_p symtab_p get bh0 name_cache
 
 initReadNameTable :: GHC -> Module -> NameCache -> IO (ReaderTable Name)
 initReadNameTable ghc currentModule cache = do
