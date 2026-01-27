@@ -37,5 +37,3 @@ thUnit = fsToUnit "template-haskell"
 ghcInternalUnit :: Unit
 ghcInternalUnit = fsToUnit "ghc-internal"
 #endif
-
-supported = undefined
