@@ -105,3 +105,6 @@ getTupleDataConName boxity n =
                     $ tyConRepName_maybe $ promotedTupleDataCon boxity arity
       _          -> panic "getTupleDataConName: impossible"
 #endif
+
+knownUniqueName :: Unique -> Maybe Name
+knownUniqueName = undefined

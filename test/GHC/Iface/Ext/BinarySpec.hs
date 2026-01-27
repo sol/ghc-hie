@@ -69,6 +69,9 @@ supported = [
   , ("9.12.2", 9122)
   ]
 
+-- foo = initNameCache 'r' mempty
+foo = undefined -- initNameCache 'r' mempty
+
 spec :: Spec
 spec = do
   describe "readHieFile" do
@@ -81,7 +84,7 @@ spec = do
             <> hieFile
             <> ", supported versions: 9122, 9121, 9103, 9102, 9101, 9084, 9083, 9082, 9081"
           expected = userError message
-        nameCache <- initNameCache 'r' mempty
+        nameCache <- foo
         readHieFile nameCache hieFile `shouldThrow` (== expected)
 
     for_ supported \ (ghcVersion, hieVersion) -> do
@@ -94,7 +97,7 @@ spec = do
           withHieFile ghc \ hieFile -> do
             extractSourceFileName hieFile `shouldReturn` "Foo.hs"
 
-            nameCache <- initNameCache 'r' mempty
+            nameCache <- foo
             result <- readHieFile nameCache hieFile
 
             result.hie_file_result_version `shouldBe` hieVersion
@@ -134,7 +137,7 @@ spec = do
               , "foo :: Int"
               , "foo = 23"
               ]
-            nameCache <- initNameCache 'r' mempty
+            nameCache <- foo
             _ <- readHieFile nameCache $ dir </> "Bar.hie"
             _ <- readHieFile nameCache $ dir </> "Foo.hie"
 

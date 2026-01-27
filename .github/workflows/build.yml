@@ -29,6 +29,8 @@ jobs:
 
           - '9.12.1'
           - '9.12'
+
+          - '9.14'
     steps:
       - name: Free disk space
         run: |

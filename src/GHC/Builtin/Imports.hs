@@ -29,3 +29,11 @@ thUnit = fsToUnit "template-haskell"
 ghcInternalUnit :: Unit
 ghcInternalUnit = fsToUnit "ghc-internal"
 #endif
+
+primUnit = undefined
+
+bignumUnit = undefined
+
+knownKeys = undefined
+
+supported = undefined

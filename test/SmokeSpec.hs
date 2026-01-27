@@ -36,6 +36,9 @@ findHieFiles = lookupEnv "CI" >>= \ case
   where
     store = "~/.local/state/cabal/store/" <> cProjectUnitId
 
+-- foo = initNameCache 'r' mempty
+foo = undefined -- initNameCache 'r' mempty
+
 spec :: Spec
 spec = do
   describe "withDeterministicUniqueSupply" do
@@ -58,9 +61,9 @@ spec = do
     runIO findHieFiles >>= traverse_ \ hieFile -> do
       it hieFile do
         theirs <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- foo
           Upstream.readHieFile hieFile nameCache
         mine <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- foo
           hie_file_result <$> readHieFile nameCache hieFile
         Blind mine `shouldBe` Blind theirs
