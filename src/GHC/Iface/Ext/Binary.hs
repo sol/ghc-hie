@@ -70,6 +70,7 @@ readHie left right name_cache file = do
     | version `elem` supported908 -> hieFileResult <$> HieFile.readHieFile908 bh0 name_cache
     | version `elem` supported910 -> hieFileResult <$> HieFile.readHieFile910 bh0 name_cache
     | version `elem` supported912 -> hieFileResult <$> HieFile.readHieFile912 bh0 name_cache
+    | version `elem` supported914 -> hieFileResult <$> HieFile.readHieFile914 bh0 name_cache
     | otherwise -> left header
 {-# INLINE readHie #-}
 
