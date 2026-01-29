@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-deprecations #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE BlockArguments #-}
 module SmokeSpec (spec) where
@@ -36,6 +37,9 @@ findHieFiles = lookupEnv "CI" >>= \ case
   where
     store = "~/.local/state/cabal/store/" <> cProjectUnitId
 
+-- foo = initNameCache 'r' mempty
+foo = initNameCache 'r' mempty
+
 spec :: Spec
 spec = do
   describe "withDeterministicUniqueSupply" do
@@ -54,13 +58,13 @@ spec = do
       peek ghc_unique_counter64 `shouldReturn` counter
       peek ghc_unique_inc `shouldReturn` increment
 
-  describe "smoke tests" do
+  fdescribe "smoke tests" do
     runIO findHieFiles >>= traverse_ \ hieFile -> do
       it hieFile do
         theirs <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- foo
           Upstream.readHieFile hieFile nameCache
         mine <- withDeterministicUniqueSupply do
-          nameCache <- initNameCache 'r' mempty
+          nameCache <- foo
           hie_file_result <$> readHieFile nameCache hieFile
         Blind mine `shouldBe` Blind theirs

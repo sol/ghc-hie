@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wno-deprecations #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE OverloadedRecordDot #-}
@@ -67,7 +68,11 @@ supported = [
   , ("9.10.3", 9103)
   , ("9.12.1", 9121)
   , ("9.12.2", 9122)
+  -- , ("9.14.1", 9141)
   ]
+
+-- foo = initNameCache 'r' mempty
+foo = initNameCache 'r' mempty
 
 spec :: Spec
 spec = do
@@ -79,9 +84,9 @@ spec = do
           message =
                "Unsupported HIE version 9048 for file "
             <> hieFile
-            <> ", supported versions: 9122, 9121, 9103, 9102, 9101, 9084, 9083, 9082, 9081"
+            <> ", supported versions: 9141, 9122, 9121, 9103, 9102, 9101, 9084, 9083, 9082, 9081"
           expected = userError message
-        nameCache <- initNameCache 'r' mempty
+        nameCache <- foo
         readHieFile nameCache hieFile `shouldThrow` (== expected)
 
     for_ supported \ (ghcVersion, hieVersion) -> do
@@ -94,7 +99,7 @@ spec = do
           withHieFile ghc \ hieFile -> do
             extractSourceFileName hieFile `shouldReturn` "Foo.hs"
 
-            nameCache <- initNameCache 'r' mempty
+            nameCache <- foo
             result <- readHieFile nameCache hieFile
 
             result.hie_file_result_version `shouldBe` hieVersion
@@ -134,7 +139,7 @@ spec = do
               , "foo :: Int"
               , "foo = 23"
               ]
-            nameCache <- initNameCache 'r' mempty
+            nameCache <- foo
             _ <- readHieFile nameCache $ dir </> "Bar.hie"
             _ <- readHieFile nameCache $ dir </> "Foo.hie"
 

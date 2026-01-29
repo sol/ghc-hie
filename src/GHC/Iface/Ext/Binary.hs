@@ -22,9 +22,9 @@ import GHC.Iface.Ext.Binary.GHC912 qualified as HieFile
 import GHC.Iface.Ext.Binary.Header (HieHeader, readHieFileHeader)
 import GHC.Iface.Ext.Binary.Header qualified as Header
 
-#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912
+#if __GLASGOW_HASKELL__ == 908 || __GLASGOW_HASKELL__ == 910 || __GLASGOW_HASKELL__ == 912 || __GLASGOW_HASKELL__ == 914
 supported :: [Integer]
-supported = supported908 ++ supported910 ++ supported912
+supported = supported908 ++ supported910 ++ supported912 ++ supported914
 #endif
 
 supported908 :: [Integer]
@@ -35,6 +35,9 @@ supported910 = [9101 .. 9103]
 
 supported912 :: [Integer]
 supported912 = [9121 .. 9122]
+
+supported914 :: [Integer]
+supported914 = [9141]
 
 -- | Read a `HieFile` from a `FilePath`. Can use an existing `NameCache`.
 readHieFile :: NameCache -> FilePath -> IO HieFileResult
@@ -67,6 +70,7 @@ readHie left right name_cache file = do
     | version `elem` supported908 -> hieFileResult <$> HieFile.readHieFile908 bh0 name_cache
     | version `elem` supported910 -> hieFileResult <$> HieFile.readHieFile910 bh0 name_cache
     | version `elem` supported912 -> hieFileResult <$> HieFile.readHieFile912 bh0 name_cache
+    | version `elem` supported914 -> hieFileResult <$> HieFile.readHieFile914 bh0 name_cache
     | otherwise -> left header
 {-# INLINE readHie #-}
 
