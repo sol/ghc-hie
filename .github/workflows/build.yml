@@ -68,7 +68,7 @@ jobs:
           ghcup install ghc 9.8.4
       - run: |
           ghcup install ghc 9.10.1
-       - run: |
+      - run: |
           ghcup install ghc 9.10.2
       - run: |
           ghcup install ghc 9.10.3
