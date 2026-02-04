@@ -62,15 +62,22 @@ jobs:
       - name: Install GHC versions
         run: |
           ghcup install ghc 9.4.8
+      - run: |
           ghcup install ghc 9.8.1
+      - run: |
           ghcup install ghc 9.8.4
+      - run: |
           ghcup install ghc 9.10.1
+       - run: |
           ghcup install ghc 9.10.2
+      - run: |
           ghcup install ghc 9.10.3
+      - run: |
           ghcup install ghc 9.12.1
+      - run: |
           ghcup install ghc 9.12.2
+      - run: |
           ghcup install ghc 9.14.1
-
         if: steps.cache.outputs.cache-hit != 'true'
 
       - uses: actions/cache/save@v4
