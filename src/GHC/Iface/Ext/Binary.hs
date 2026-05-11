@@ -49,7 +49,7 @@ supported910 :: [Integer]
 supported910 = [9101 .. 9103]
 
 supported912 :: [Integer]
-supported912 = [9121 .. 9122]
+supported912 = [9121, 9122, 9124]
 
 supported914 :: [Integer]
 supported914 = [9141]

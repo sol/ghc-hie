@@ -67,6 +67,7 @@ supported = [
   , ("9.10.3", 9103)
   , ("9.12.1", 9121)
   , ("9.12.2", 9122)
+  , ("9.12.4", 9124)
   , ("9.14.1", 9141)
   ]
 
@@ -80,7 +81,7 @@ spec = do
           message =
                "Unsupported HIE version 9048 for file "
             <> hieFile
-            <> ", supported versions: 9141, 9122, 9121, 9103, 9102, 9101, 9084, 9083, 9082, 9081"
+            <> ", supported versions: 9141, 9124, 9122, 9121, 9103, 9102, 9101, 9084, 9083, 9082, 9081"
           expected = userError message
         nameCache <- newEmptyNameCache
         readHieFile nameCache hieFile `shouldThrow` (== expected)
